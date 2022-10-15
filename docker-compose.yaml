@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  todo-app:
+    build: ./
+    ports:
+      - 8080:8080
+
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: secret
+    ports:
+      - 5432:5432
+    volumes:
+      - /var/lib/docker/volumes/tasktracker-db/_data:/var/lib/postgresql/data
