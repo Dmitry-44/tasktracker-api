@@ -1,6 +1,9 @@
 package repository
 
-import "tasktracker-api/pkg/models"
+import (
+	"database/sql"
+	"tasktracker-api/pkg/models"
+)
 
 type Tasks interface {
 	GetAll(userId int) ([]models.Task, error)
@@ -9,8 +12,8 @@ type Repository struct {
 	Tasks
 }
 
-func NewRepository() *Repository {
+func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
-		Tasks: NewTaskStore(),
+		Tasks: NewTaskRepo(db),
 	}
 }

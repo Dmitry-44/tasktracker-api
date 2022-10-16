@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"tasktracker-api/pkg/models"
 	"tasktracker-api/pkg/repository"
 )
@@ -14,5 +15,6 @@ func NewTaskService(repo repository.Tasks) *TaskService {
 }
 
 func (s *TaskService) GetAll(userId int) ([]models.Task, error) {
+	fmt.Println("GetAll")
 	return s.repo.GetAll(userId)
 }
