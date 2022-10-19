@@ -7,6 +7,7 @@ import (
 	router "tasktracker-api/pkg/router"
 	"tasktracker-api/pkg/service"
 
+	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/lib/pq"
 
 	"github.com/spf13/viper"
@@ -25,6 +26,17 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
+	//MIGRATIONS
+	m, err := migrate.New(
+		"/db/migrations",
+		"postgres://postgres:secret@localhost:5432/postgres?sslmode=disable")
+	if err != nil {
+		log.Fatal("migrate error: ", err)
+	}
+	if err := m.Up(); err != nil {
+		log.Fatal(err)
+	}
+
 	repository := repository.NewRepository(db)
 	services := service.NewService(repository)
 	router := router.NewRouter(services)

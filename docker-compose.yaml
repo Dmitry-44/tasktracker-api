@@ -14,4 +14,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - /var/lib/docker/volumes/tasktracker-db/_data:/var/lib/postgresql/data
+      - tasktracker-db:/var/lib/postgresql/data
+      
+volumes:
+  tasktracker-db:
