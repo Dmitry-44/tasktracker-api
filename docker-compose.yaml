@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  postgres-db:
+    build: ./db
+    volumes:
+      - ./db/pgdata/pgdata
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=qwerty
+      - PGDATA=/pgdata
+      - POSTGRES_DB=tasktracker
