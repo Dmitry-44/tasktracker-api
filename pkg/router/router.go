@@ -22,6 +22,11 @@ func (r *Router) InitRoutes() *gin.Engine {
 		tasks := api.Group(("/tasks"))
 		{
 			tasks.GET("/", r.GetAll)
+			tasks.GET("/:id", r.GetTaskById)
+			tasks.POST("/", r.CreateTask)
+			tasks.PUT("/:id", r.UpdateTask)
+			tasks.DELETE("/:id", r.DeleteTask)
+
 		}
 	}
 	return router

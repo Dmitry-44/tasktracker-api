@@ -15,41 +15,60 @@ func NewTaskRepo(db *sql.DB) *TaskRepo {
 	return &TaskRepo{db: db}
 }
 
-func (r *TaskRepo) GetAll(userId int) ([]models.Task, error) {
-	var resp []models.Task = make([]models.Task, 0)
-	// query := fmt.Sprintf("SELECT id, title FROM tasks")
-	rows, err := r.db.Query("select * from tasks")
-	// err := r.db.QueryRow(query).Scan(&resp)
+func (r *TaskRepo) GetAll() (models.TaskList, error) {
+	list := models.TaskList{}
+	rows, err := r.db.Query("SELECT * FROM tasks")
+	if err != nil {
+		return list, err
+	}
 	defer rows.Close()
-
 	for rows.Next() {
 		var task models.Task
-		// var id int
-		// var title string
 		err := rows.Scan(&task.Id, &task.Title)
 		if err != nil {
 			log.Fatalf("scanning database error: %v", err)
 		}
-		fmt.Printf("task in next is %v !!!", task)
-		// fmt.Printf("title in next is %v", title)
-		// resp.append(resp, task)
+		list.Tasks = append(list.Tasks, task)
 	}
-	fmt.Printf("resp is, %v", resp)
-	// fmt.Printf("res is, %s", res)
-	if err != nil {
-		return resp, err
-	}
-	return resp, nil
+	return list, nil
 }
 
-// func (r *AuthPostgres) CreateUser(user todo.User) (int, error) {
-// 	var id int
-// 	query := fmt.Sprintf("INSERT INTO %s (name, username, password_hash) values ($1, $2, $3) RETURNING id", usersTable)
+func (r *TaskRepo) GetTaskById(taskId int) (models.Task, error) {
+	task := models.Task{}
+	err := r.db.QueryRow("SELECT * FROM tasks WHERE id=($1)", taskId).Scan(&task.Id, &task.Title)
+	if err != nil {
+		return task, err
+	}
+	return task, nil
+}
 
-// 	row := r.db.QueryRow(query, user.Name, user.Username, user.Password)
-// 	if err := row.Scan(&id); err != nil {
-// 		return 0, err
-// 	}
+func (r *TaskRepo) CreateTask(task models.TaskData) (int, error) {
+	var taskId int
+	query := "INSERT into tasks (title) VALUES ($1) RETURNING id"
+	err := r.db.QueryRow(query, task.Title).Scan(&taskId)
+	if err != nil {
+		return taskId, err
+	}
+	return taskId, nil
+}
 
-// 	return id, nil
-// }
+// TO DO
+func (r *TaskRepo) UpdateTask(id int, task models.TaskData) (int, error) {
+	var taskId int
+	set := make([]string, 0)
+	// args := make([]interface{}, 0)
+	query := fmt.Sprintf("UPDATE tasks SET %v WHERE id=%v RETURNING id", set, id)
+	err := r.db.QueryRow(query, task.Title).Scan(&taskId)
+	if err != nil {
+		return taskId, err
+	}
+	return taskId, nil
+}
+
+func (r *TaskRepo) DeleteTask(id int) error {
+	err := r.db.QueryRow("DELETE FROM tasks WHERE id=($1)", id)
+	if err != nil {
+		return err.Err()
+	}
+	return nil
+}
