@@ -9,7 +9,7 @@ type Tasks interface {
 	GetAll() (models.TaskList, error)
 	GetTaskById(int) (models.Task, error)
 	CreateTask(models.TaskData) (int, error)
-	UpdateTask(int, models.TaskData) (int, error)
+	UpdateTask(int, models.TaskData) error
 	DeleteTask(int) error
 }
 

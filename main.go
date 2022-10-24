@@ -27,12 +27,14 @@ func main() {
 	defer db.Close()
 	//MIGRATIONS
 	// m, err := migrate.New(
-	// 	"/db/migrations",
+	// 	"file://db/migrations/",
 	// 	"postgres://postgres:secret@localhost:5432/postgres?sslmode=disable")
 	// if err != nil {
+	// 	fmt.Println("migr err")
 	// 	log.Fatal("migrate error: ", err)
 	// }
 	// if err := m.Up(); err != nil {
+	// 	fmt.Println("migr err2")
 	// 	log.Fatal(err)
 	// }
 

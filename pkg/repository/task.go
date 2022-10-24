@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 	"tasktracker-api/pkg/models"
 )
 
@@ -53,16 +54,23 @@ func (r *TaskRepo) CreateTask(task models.TaskData) (int, error) {
 }
 
 // TO DO
-func (r *TaskRepo) UpdateTask(id int, task models.TaskData) (int, error) {
-	var taskId int
+func (r *TaskRepo) UpdateTask(id int, task models.TaskData) error {
 	set := make([]string, 0)
-	// args := make([]interface{}, 0)
-	query := fmt.Sprintf("UPDATE tasks SET %v WHERE id=%v RETURNING id", set, id)
-	err := r.db.QueryRow(query, task.Title).Scan(&taskId)
-	if err != nil {
-		return taskId, err
+	args := make([]interface{}, 0)
+	argsId := 1
+	if task.Title != nil {
+		set = append(set, fmt.Sprintf("title=($%d)", argsId))
+		args = append(args, *task.Title)
+		argsId++
 	}
-	return taskId, nil
+	setQuery := strings.Join(set, ", ")
+	query := fmt.Sprintf("UPDATE tasks SET %s WHERE id=($%v)", setQuery, argsId)
+	args = append(args, id)
+	_, err := r.db.Exec(query, args...)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *TaskRepo) DeleteTask(id int) error {

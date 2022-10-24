@@ -72,14 +72,17 @@ func (r *Router) UpdateTask(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusOK, gin.H{"data": "Server error"})
 		return
 	}
-	updatedTaskId, err := r.services.Tasks.UpdateTask(id, task)
+	err = r.services.Tasks.UpdateTask(id, task)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
 		return
 	}
 	ctx.IndentedJSON(
 		http.StatusOK,
-		gin.H{"data": updatedTaskId},
+		models.ServerResponse{
+			Status: "ok",
+			Data:   idString,
+		},
 	)
 }
 

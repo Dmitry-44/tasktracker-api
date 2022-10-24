@@ -22,7 +22,7 @@ func (s *TaskService) GetTaskById(taskId int) (models.Task, error) {
 func (s *TaskService) CreateTask(task models.TaskData) (int, error) {
 	return s.repo.CreateTask(task)
 }
-func (s *TaskService) UpdateTask(taskId int, task models.TaskData) (int, error) {
+func (s *TaskService) UpdateTask(taskId int, task models.TaskData) error {
 	return s.repo.UpdateTask(taskId, task)
 }
 func (s *TaskService) DeleteTask(taskId int) error {
