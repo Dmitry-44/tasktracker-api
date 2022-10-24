@@ -1,9 +1,14 @@
 package models
 
 type Task struct {
-	Id     int    `json:"id" db:"id" `
-	Title  string `json:"title" db:"title"`
-	Status int    `json:"status" db:"status"`
+	Id          int    `json:"id" db:"id" `
+	Title       string `json:"title" db:"title"`
+	Description string `json:"description" db:"description"`
+	Status      int    `json:"status" db:"status"`
+	Priority    int    `json:"priority" db:"priority"`
+	CreatedBy   int    `json:"createdBy" db:"created_by"`
+	UserId      int    `json:"userId" db:"user_id"`
+	GroupId     int    `json:"groupId" db:"group_id"`
 }
 
 type TaskList struct {
