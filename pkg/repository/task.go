@@ -25,7 +25,7 @@ func (r *TaskRepo) GetAll() (models.TaskList, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var task models.Task
-		err := rows.Scan(&task.Id, &task.Title)
+		err := rows.Scan(&task.Id, &task.Title, &task.Status)
 		if err != nil {
 			log.Fatalf("scanning database error: %v", err)
 		}
@@ -36,7 +36,7 @@ func (r *TaskRepo) GetAll() (models.TaskList, error) {
 
 func (r *TaskRepo) GetTaskById(taskId int) (models.Task, error) {
 	task := models.Task{}
-	err := r.db.QueryRow("SELECT * FROM tasks WHERE id=($1)", taskId).Scan(&task.Id, &task.Title)
+	err := r.db.QueryRow("SELECT * FROM tasks WHERE id=($1)", taskId).Scan(&task.Id, &task.Title, &task.Status)
 	if err != nil {
 		return task, err
 	}
@@ -61,6 +61,11 @@ func (r *TaskRepo) UpdateTask(id int, task models.TaskData) error {
 	if task.Title != nil {
 		set = append(set, fmt.Sprintf("title=($%d)", argsId))
 		args = append(args, *task.Title)
+		argsId++
+	}
+	if task.Status != nil {
+		set = append(set, fmt.Sprintf("status=($%d)", argsId))
+		args = append(args, *task.Status)
 		argsId++
 	}
 	setQuery := strings.Join(set, ", ")
