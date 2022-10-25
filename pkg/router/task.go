@@ -9,8 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (r *Router) GetAll(ctx *gin.Context) {
-	data, err := r.services.Tasks.GetAll()
+func (r *Router) GetAllTasks(ctx *gin.Context) {
+	user, userExist := ctx.Get("user")
+	if userExist != true {
+		ctx.IndentedJSON(http.StatusUnauthorized, gin.H{"data": "Unauthorized user"})
+		return
+	}
+	fmt.Printf("context is : %v", user)
+	data, err := r.services.Tasks.GetAll(ctx)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": "Server Error"})
 		return
@@ -22,6 +28,8 @@ func (r *Router) GetAll(ctx *gin.Context) {
 }
 
 func (r *Router) CreateTask(ctx *gin.Context) {
+	// user:=models.User{Id:1}
+	fmt.Printf("context is : %v", ctx)
 	task := models.TaskData{}
 	if err := ctx.BindJSON(&task); err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": "Server error"})

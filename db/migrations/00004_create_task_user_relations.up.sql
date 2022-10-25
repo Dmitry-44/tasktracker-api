@@ -1,4 +1,4 @@
 ALTER TABLE tasks ADD COLUMN priority INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE tasks ADD COLUMN created_by INTEGER NOT NULL;
 ALTER TABLE tasks ADD COLUMN user_id INTEGER REFERENCES users(id);
-ALTER TABLE tasks ADD CONSTRAINT createdbyuser FOREIGN KEY (created_by) REFERENCES users(id);
+ALTER TABLE public.tasks ADD CONSTRAINT u_id FOREIGN KEY (created_by) REFERENCES public.users(id);

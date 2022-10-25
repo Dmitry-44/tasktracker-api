@@ -44,13 +44,53 @@ func (r *TaskRepo) GetTaskById(taskId int) (models.Task, error) {
 }
 
 func (r *TaskRepo) CreateTask(task models.TaskData) (int, error) {
-	var taskId int
-	query := "INSERT into tasks (title) VALUES ($1) RETURNING id"
-	err := r.db.QueryRow(query, task.Title).Scan(&taskId)
-	if err != nil {
-		return taskId, err
+	var createdTaskId int
+	userId := 1
+	set := make([]string, 0)
+	numbersSet := make([]string, 0)
+	values := make([]interface{}, 0)
+	valueId := 1
+	if task.Title != nil {
+		set = append(set, "title")
+		numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
+		values = append(values, *task.Title)
+		valueId++
 	}
-	return taskId, nil
+	if task.Description != nil {
+		set = append(set, "description")
+		numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
+		values = append(values, *task.Description)
+		valueId++
+	}
+	if task.Status != nil {
+		set = append(set, "status")
+		numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
+		values = append(values, *task.Status)
+		valueId++
+	}
+	if task.Priority != nil {
+		set = append(set, "priority")
+		numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
+		values = append(values, *task.Priority)
+		valueId++
+	}
+	if task.GroupId != nil {
+		set = append(set, "group_id")
+		numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
+		values = append(values, *task.GroupId)
+		valueId++
+	}
+	set = append(set, "created_by")
+	numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
+	values = append(values, userId)
+	setString := strings.Join(set, ", ")
+	numbersSetString := strings.Join(numbersSet, ", ")
+	query := fmt.Sprintf("INSERT into tasks (%s) VALUES (%s) RETURNING id", setString, numbersSetString)
+	err := r.db.QueryRow(query, values...).Scan(&createdTaskId)
+	if err != nil {
+		return createdTaskId, err
+	}
+	return createdTaskId, nil
 }
 
 // TO DO

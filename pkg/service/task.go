@@ -3,6 +3,8 @@ package service
 import (
 	"tasktracker-api/pkg/models"
 	"tasktracker-api/pkg/repository"
+
+	"github.com/gin-gonic/gin"
 )
 
 type TaskService struct {
@@ -13,13 +15,14 @@ func NewTaskService(repo repository.Tasks) *TaskService {
 	return &TaskService{repo: repo}
 }
 
-func (s *TaskService) GetAll() (models.TaskList, error) {
+func (s *TaskService) GetAll(ctx *gin.Context) (models.TaskList, error) {
 	return s.repo.GetAll()
 }
 func (s *TaskService) GetTaskById(taskId int) (models.Task, error) {
 	return s.repo.GetTaskById(taskId)
 }
 func (s *TaskService) CreateTask(task models.TaskData) (int, error) {
+
 	return s.repo.CreateTask(task)
 }
 func (s *TaskService) UpdateTask(taskId int, task models.TaskData) error {

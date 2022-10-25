@@ -7,7 +7,6 @@ type Task struct {
 	Status      int    `json:"status" db:"status"`
 	Priority    int    `json:"priority" db:"priority"`
 	CreatedBy   int    `json:"createdBy" db:"created_by"`
-	UserId      int    `json:"userId" db:"user_id"`
 	GroupId     int    `json:"groupId" db:"group_id"`
 }
 
@@ -16,6 +15,9 @@ type TaskList struct {
 }
 
 type TaskData struct {
-	Title  *string `json:"title" db:"title"`
-	Status *int    `json:"status" db:"status"`
+	Title       *string `json:"title" db:"title"`
+	Description *string `json:"description" db:"description"`
+	Status      *int    `json:"status" db:"status"`
+	Priority    *int    `json:"priority" db:"priority"`
+	GroupId     *int    `json:"groupId" db:"group_id"`
 }
