@@ -16,16 +16,16 @@ func NewTaskRepo(db *sql.DB) *TaskRepo {
 	return &TaskRepo{db: db}
 }
 
-func (r *TaskRepo) GetAll() (models.TaskList, error) {
+func (r *TaskRepo) GetAll(user int) (models.TaskList, error) {
 	list := models.TaskList{}
-	rows, err := r.db.Query("SELECT * FROM tasks")
+	rows, err := r.db.Query("SELECT * FROM tasks WHERE created_by=($1)", user)
 	if err != nil {
 		return list, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var task models.Task
-		err := rows.Scan(&task.Id, &task.Title, &task.Status)
+		err := rows.Scan(&task.Id, &task.Title, &task.Status, &task.CreatedBy, &task.Priority, &task.Description, &task.GroupId)
 		if err != nil {
 			log.Fatalf("scanning database error: %v", err)
 		}
@@ -34,18 +34,17 @@ func (r *TaskRepo) GetAll() (models.TaskList, error) {
 	return list, nil
 }
 
-func (r *TaskRepo) GetTaskById(taskId int) (models.Task, error) {
+func (r *TaskRepo) GetTaskById(user int, taskId int) (models.Task, error) {
 	task := models.Task{}
-	err := r.db.QueryRow("SELECT * FROM tasks WHERE id=($1)", taskId).Scan(&task.Id, &task.Title, &task.Status)
+	err := r.db.QueryRow("SELECT * FROM tasks WHERE id=($1) created_by=($2)", taskId, user).Scan(&task.Id, &task.Title, &task.Status)
 	if err != nil {
 		return task, err
 	}
 	return task, nil
 }
 
-func (r *TaskRepo) CreateTask(task models.TaskData) (int, error) {
+func (r *TaskRepo) CreateTask(user int, task models.TaskData) (int, error) {
 	var createdTaskId int
-	userId := 1
 	set := make([]string, 0)
 	numbersSet := make([]string, 0)
 	values := make([]interface{}, 0)
@@ -82,7 +81,7 @@ func (r *TaskRepo) CreateTask(task models.TaskData) (int, error) {
 	}
 	set = append(set, "created_by")
 	numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
-	values = append(values, userId)
+	values = append(values, user)
 	setString := strings.Join(set, ", ")
 	numbersSetString := strings.Join(numbersSet, ", ")
 	query := fmt.Sprintf("INSERT into tasks (%s) VALUES (%s) RETURNING id", setString, numbersSetString)
