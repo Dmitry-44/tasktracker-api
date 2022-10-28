@@ -2,7 +2,6 @@ package router
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -57,7 +56,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
-		fmt.Print("here")
 		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), "user_id", user))
 		c.Next()
 	}
@@ -66,8 +64,6 @@ func AuthMiddleware() gin.HandlerFunc {
 func extractToken(c *gin.Context) string {
 	bearToken := c.GetHeader("Authorization")
 	strArr := strings.Split(bearToken, " ")
-	fmt.Printf("auth string is : %s", bearToken)
-	fmt.Printf("auth arr is : %v", strArr)
 	if len(strArr) == 2 {
 		return strArr[1]
 	}

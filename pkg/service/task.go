@@ -20,12 +20,11 @@ func (s *TaskService) GetTaskById(user int, taskId int) (models.Task, error) {
 	return s.repo.GetTaskById(user, taskId)
 }
 func (s *TaskService) CreateTask(user int, task models.TaskData) (int, error) {
-
 	return s.repo.CreateTask(user, task)
 }
-func (s *TaskService) UpdateTask(taskId int, task models.TaskData) error {
-	return s.repo.UpdateTask(taskId, task)
+func (s *TaskService) UpdateTask(user int, taskId int, task models.TaskData) error {
+	return s.repo.UpdateTask(user, taskId, task)
 }
-func (s *TaskService) DeleteTask(taskId int) error {
-	return s.repo.DeleteTask(taskId)
+func (s *TaskService) DeleteTask(user int, taskId int) error {
+	return s.repo.DeleteTask(user, taskId)
 }
