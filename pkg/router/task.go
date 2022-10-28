@@ -12,66 +12,131 @@ import (
 func (r *Router) GetAllTasks(ctx *gin.Context) {
 	user, ok := ctx.Request.Context().Value("user_id").(int)
 	if !ok {
-		ctx.IndentedJSON(http.StatusUnauthorized, gin.H{"data": "Unauthorized user"})
+		ctx.IndentedJSON(
+			http.StatusUnauthorized,
+			gin.H{
+				"status":       models.StatusSuccess,
+				"data":         "[]",
+				"errorMessage": "Unauthorized user",
+			})
 		return
 	}
 	data, err := r.services.Tasks.GetAll(user)
 	if err != nil {
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": "Server Error"})
+		ctx.IndentedJSON(
+			http.StatusBadRequest,
+			gin.H{
+				"status":       models.StatusError,
+				"data":         "[]",
+				"errorMessage": err.Error(),
+			})
 		return
 	}
 	ctx.IndentedJSON(
 		http.StatusCreated,
-		gin.H{"data": data},
-	)
-}
-
-func (r *Router) CreateTask(ctx *gin.Context) {
-	user, ok := ctx.Request.Context().Value("user_id").(int)
-	if !ok {
-		ctx.IndentedJSON(http.StatusUnauthorized, gin.H{"data": "Unauthorized user"})
-		return
-	}
-	task := models.TaskData{}
-	if err := ctx.BindJSON(&task); err != nil {
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": "Server error"})
-		return
-	}
-	if task.Title == nil {
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": "Empty title field"})
-		return
-	}
-	id, err := r.services.Tasks.CreateTask(user, task)
-	if err != nil {
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
-		return
-	}
-	ctx.IndentedJSON(
-		http.StatusCreated,
-		gin.H{"data": id},
+		gin.H{
+			"status":       models.StatusSuccess,
+			"data":         data,
+			"errorMessage": "",
+		},
 	)
 }
 
 func (r *Router) GetTaskById(ctx *gin.Context) {
 	user, ok := ctx.Request.Context().Value("user_id").(int)
 	if !ok {
-		ctx.IndentedJSON(http.StatusUnauthorized, gin.H{"data": "Unauthorized user"})
+		ctx.IndentedJSON(
+			http.StatusUnauthorized,
+			gin.H{
+				"status":       models.StatusSuccess,
+				"data":         "[]",
+				"errorMessage": "Unauthorized user",
+			})
 		return
 	}
 	taskIdStr := ctx.Param("id")
 	taskId, err := strconv.Atoi(taskIdStr)
 	if err != nil {
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": "Server error"})
+		ctx.IndentedJSON(
+			http.StatusBadRequest,
+			gin.H{
+				"status": models.StatusError,
+				"data":   "",
+				"error":  fmt.Sprintf("Server error: %v", err.Error()),
+			})
 		return
 	}
 	task, err := r.services.Tasks.GetTaskById(user, taskId)
 	if err != nil {
-		ctx.IndentedJSON(http.StatusNotFound, gin.H{"data": task, "error": err.Error()})
+		ctx.IndentedJSON(
+			http.StatusBadRequest,
+			gin.H{
+				"status": models.StatusError,
+				"data":   task,
+				"error":  err.Error()})
 		return
 	}
 	ctx.IndentedJSON(
 		http.StatusOK,
-		gin.H{"data": task},
+		gin.H{
+			"status":       models.StatusSuccess,
+			"data":         task,
+			"errorMessage": "",
+		},
+	)
+}
+
+func (r *Router) CreateTask(ctx *gin.Context) {
+	user, ok := ctx.Request.Context().Value("user_id").(int)
+	if !ok {
+		ctx.IndentedJSON(
+			http.StatusUnauthorized,
+			gin.H{
+				"status":       models.StatusSuccess,
+				"data":         "",
+				"errorMessage": "Unauthorized user",
+			})
+		return
+	}
+	task := models.TaskData{}
+	if err := ctx.BindJSON(&task); err != nil {
+		ctx.IndentedJSON(
+			http.StatusBadRequest,
+			gin.H{
+				"status": models.StatusError,
+				"data":   "",
+				"error":  fmt.Sprintf("Server error: %v", err.Error()),
+			})
+		return
+	}
+	if task.Title == nil {
+		ctx.IndentedJSON(
+			http.StatusBadRequest,
+			gin.H{
+				"status": models.StatusError,
+				"data":   "",
+				"error":  "Title is required",
+			})
+		return
+	}
+	id, err := r.services.Tasks.CreateTask(user, task)
+	if err != nil {
+		ctx.IndentedJSON(
+			http.StatusBadRequest,
+			gin.H{
+				"status": models.StatusError,
+				"data":   id,
+				"error":  err.Error(),
+			})
+		return
+	}
+	ctx.IndentedJSON(
+		http.StatusOK,
+		gin.H{
+			"status":       models.StatusSuccess,
+			"data":         id,
+			"errorMessage": "",
+		},
 	)
 }
 

@@ -24,3 +24,7 @@ func (r *ServerResponse) Error() *ServerResponse {
 	}
 	return response
 }
+
+var ErrorServerResponse = ServerResponse{
+	Status: "error",
+}

@@ -17,10 +17,11 @@ func NewTaskRepo(db *sql.DB) *TaskRepo {
 }
 
 func (r *TaskRepo) GetAll(user int) (models.TaskList, error) {
-	list := models.TaskList{}
+	taskList := models.TaskList{}
+	taskList.Tasks = make([]models.Task, 0)
 	rows, err := r.db.Query("SELECT * FROM tasks WHERE created_by=($1)", user)
 	if err != nil {
-		return list, err
+		return taskList, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -29,9 +30,9 @@ func (r *TaskRepo) GetAll(user int) (models.TaskList, error) {
 		if err != nil {
 			log.Fatalf("scanning database error: %v", err)
 		}
-		list.Tasks = append(list.Tasks, task)
+		taskList.Tasks = append(taskList.Tasks, task)
 	}
-	return list, nil
+	return taskList, nil
 }
 
 func (r *TaskRepo) GetTaskById(user int, taskId int) (models.Task, error) {
