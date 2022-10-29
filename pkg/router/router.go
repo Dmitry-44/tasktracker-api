@@ -50,7 +50,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		user := models.User{
 			Id: 1,
 		}
-		c.Set("user", user.Id)
+		c.Set("user", user)
 		c.Next()
 	}
 }

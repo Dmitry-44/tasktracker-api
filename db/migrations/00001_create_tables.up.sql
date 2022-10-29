@@ -1,3 +1,13 @@
+CREATE TABLE IF NOT EXISTS public.users (
+	id bigserial NOT NULL,
+	"name" varchar(255) NULL,
+	username varchar(255) NULL,
+	email varchar(255) NOT NULL,
+	"password" varchar(255) NOT NULL,
+	"groups" text NULL DEFAULT '[]'::text,
+	CONSTRAINT users_pkey PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS public.tasks (
 	id int4 NOT NULL GENERATED ALWAYS AS IDENTITY,
 	title varchar(255) NOT NULL,
@@ -8,16 +18,6 @@ CREATE TABLE IF NOT EXISTS public.tasks (
 	group_id int4 NULL DEFAULT 0,
 	CONSTRAINT tasks_pk PRIMARY KEY (id),
 	CONSTRAINT u_id FOREIGN KEY (created_by) REFERENCES public.users(id)
-);
-
-CREATE TABLE IF NOT EXISTS public.users (
-	id bigserial NOT NULL,
-	"name" varchar(255) NULL,
-	username varchar(255) NULL,
-	email varchar(255) NOT NULL,
-	"password" varchar(255) NOT NULL,
-	"groups" text NULL DEFAULT '[]'::text,
-	CONSTRAINT users_pkey PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS public."group" (

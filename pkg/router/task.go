@@ -29,7 +29,17 @@ func (r *Router) GetAllTasks(ctx *gin.Context) {
 
 func (r *Router) CreateTask(ctx *gin.Context) {
 	// user:=models.User{Id:1}
-	fmt.Printf("context is : %v", ctx)
+	// var userId int
+	user, isExist := ctx.Get("user")
+	userId, ok := user.(int)
+	fmt.Println("userid is not int")
+	if ok != true {
+		fmt.Println("userid is not int")
+	}
+
+	if isExist {
+		fmt.Println("ssss")
+	}
 	task := models.TaskData{}
 	if err := ctx.BindJSON(&task); err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": "Server error"})
@@ -39,7 +49,7 @@ func (r *Router) CreateTask(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": "Empty title field"})
 		return
 	}
-	id, err := r.services.Tasks.CreateTask(task)
+	id, err := r.services.Tasks.CreateTask(userId, task)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
 		return

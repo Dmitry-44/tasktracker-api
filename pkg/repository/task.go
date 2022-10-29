@@ -43,9 +43,8 @@ func (r *TaskRepo) GetTaskById(taskId int) (models.Task, error) {
 	return task, nil
 }
 
-func (r *TaskRepo) CreateTask(task models.TaskData) (int, error) {
+func (r *TaskRepo) CreateTask(user int, task models.TaskData) (int, error) {
 	var createdTaskId int
-	userId := 1
 	set := make([]string, 0)
 	numbersSet := make([]string, 0)
 	values := make([]interface{}, 0)
@@ -82,7 +81,7 @@ func (r *TaskRepo) CreateTask(task models.TaskData) (int, error) {
 	}
 	set = append(set, "created_by")
 	numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
-	values = append(values, userId)
+	values = append(values, user)
 	setString := strings.Join(set, ", ")
 	numbersSetString := strings.Join(numbersSet, ", ")
 	query := fmt.Sprintf("INSERT into tasks (%s) VALUES (%s) RETURNING id", setString, numbersSetString)
