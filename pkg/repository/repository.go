@@ -5,17 +5,17 @@ import (
 	"tasktracker-api/pkg/interfaces"
 )
 
-type IUser interface{ interfaces.IUser }
-type ITask interface{ interfaces.ITask }
+type Users interface{ interfaces.IUser }
+type Tasks interface{ interfaces.ITask }
 
 type Repository struct {
-	ITask
-	IUser
+	Tasks
+	Users
 }
 
 func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
-		ITask: NewTasksRepo(db),
-		IUser: NewUsersRepo(db),
+		Tasks: NewTasksRepo(db),
+		Users: NewUsersRepo(db),
 	}
 }

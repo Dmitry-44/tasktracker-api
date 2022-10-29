@@ -10,7 +10,7 @@ import (
 )
 
 func (r *Router) GetAllTasks(ctx *gin.Context) {
-	user, ok := ctx.Request.Context().Value("user_id").(int)
+	user, ok := ctx.Request.Context().Value("user_id").(models.User)
 	if !ok {
 		ctx.IndentedJSON(
 			http.StatusUnauthorized,
@@ -21,7 +21,8 @@ func (r *Router) GetAllTasks(ctx *gin.Context) {
 			})
 		return
 	}
-	data, err := r.services.ITask.GetAll(user)
+	fmt.Printf("use id in router - %v '\n'", user.Id)
+	data, err := r.services.Task.GetAll(user.Id)
 	if err != nil {
 		ctx.IndentedJSON(
 			http.StatusBadRequest,
@@ -66,7 +67,7 @@ func (r *Router) GetTaskById(ctx *gin.Context) {
 			})
 		return
 	}
-	task, err := r.services.ITask.GetTaskById(user, taskId)
+	task, err := r.services.Task.GetTaskById(user, taskId)
 	if err != nil {
 		ctx.IndentedJSON(
 			http.StatusBadRequest,
@@ -119,7 +120,7 @@ func (r *Router) CreateTask(ctx *gin.Context) {
 			})
 		return
 	}
-	id, err := r.services.ITask.CreateTask(user, task)
+	id, err := r.services.Task.CreateTask(user, task)
 	if err != nil {
 		ctx.IndentedJSON(
 			http.StatusBadRequest,
@@ -157,7 +158,7 @@ func (r *Router) UpdateTask(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusOK, gin.H{"data": "Server error"})
 		return
 	}
-	err = r.services.ITask.UpdateTask(user, id, task)
+	err = r.services.Task.UpdateTask(user, id, task)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
 		return
@@ -183,18 +184,7 @@ func (r *Router) DeleteTask(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": "Server error"})
 		return
 	}
-	task, err := r.services.ITask.GetTaskById(user, taskId)
-	if err != nil {
-		errorMessage := fmt.Sprintf("Data with id = %v not found", taskId)
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"dataa": errorMessage})
-		return
-	}
-	if (models.Task{} == task) {
-		errorMessage := fmt.Sprintf("Data with id = %v not found!", taskId)
-		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": errorMessage})
-		return
-	}
-	err = r.services.ITask.DeleteTask(user, taskId)
+	err = r.services.Task.DeleteTask(user, taskId)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
 		return

@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,7 +22,7 @@ func NewRouter(services *service.Service) *Router {
 func (r *Router) InitRoutes() *gin.Engine {
 
 	router := gin.New()
-	router.Use(AuthMiddleware())
+	router.Use(AuthMiddleware(r))
 	api := router.Group("/api")
 	{
 		v1 := api.Group("/v1")
@@ -48,14 +49,23 @@ func (r *Router) InitRoutes() *gin.Engine {
 	return router
 }
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(r *Router) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		fmt.Print("auth middleware")
 		user_id := extractToken(c)
-		user, err := strconv.Atoi(user_id)
+		userId, err := strconv.Atoi(user_id)
+
 		if err != nil {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+		user, err := r.services.Auth.GetUserById(userId)
+		fmt.Printf("user is %v", user)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		fmt.Printf("user is %v", user)
 		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), "user_id", user))
 		c.Next()
 	}

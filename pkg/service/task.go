@@ -6,10 +6,10 @@ import (
 )
 
 type TasksService struct {
-	tasksRepo repository.ITask
+	tasksRepo repository.Tasks
 }
 
-func NewTasksService(tasksRepo repository.ITask) *TasksService {
+func NewTasksService(tasksRepo repository.Tasks) *TasksService {
 	return &TasksService{tasksRepo: tasksRepo}
 }
 

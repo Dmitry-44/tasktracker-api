@@ -5,16 +5,16 @@ import (
 	"tasktracker-api/pkg/repository"
 )
 
-type IUser interface{ interfaces.IUser }
-type ITask interface{ interfaces.ITask }
+type Task interface{ interfaces.ITaskService }
+type Auth interface{ interfaces.IAuthService }
 type Service struct {
-	ITask
-	IUser
+	Task
+	Auth
 }
 
 func NewService(repo *repository.Repository) *Service {
 	return &Service{
-		ITask: NewTasksService(repo.ITask),
-		IUser: NewAuthService(repo.IUser, repo.ITask),
+		Task: NewTasksService(repo.Tasks),
+		Auth: NewAuthService(repo.Users, repo.Tasks),
 	}
 }

@@ -6,11 +6,11 @@ import (
 )
 
 type AuthService struct {
-	usersRepo repository.IUser
-	tasksRepo repository.ITask
+	usersRepo repository.Users
+	tasksRepo repository.Tasks
 }
 
-func NewAuthService(usersRepo repository.IUser, tasksRepo repository.ITask) *AuthService {
+func NewAuthService(usersRepo repository.Users, tasksRepo repository.Tasks) *AuthService {
 	return &AuthService{
 		usersRepo: usersRepo,
 		tasksRepo: tasksRepo,
@@ -23,9 +23,10 @@ func NewAuthService(usersRepo repository.IUser, tasksRepo repository.ITask) *Aut
 func (s *AuthService) GetUserById(userId int) (models.User, error) {
 	return s.usersRepo.GetUserById(userId)
 }
-func (s *AuthService) CreateUser(task models.UserData) (int, error) {
-	return s.usersRepo.CreateUser(task)
-}
+
+// func (s *AuthService) CreateUser(task models.UserData) (int, error) {
+// 	return s.usersRepo.CreateUser(task)
+// }
 
 // func (s *AuthService) UpdateTask(user int, taskId int, task models.TaskData) error {
 // 	return s.repo.UpdateTask(user, taskId, task)

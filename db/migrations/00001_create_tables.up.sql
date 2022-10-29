@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS public.users (
 	id bigserial NOT NULL,
-	"name" varchar(255) NULL,
-	username varchar(255) NULL,
+	"name" varchar(255) NOT NULL,
+	username varchar(255) NOT NULL,
 	email varchar(255) NOT NULL,
 	"password" varchar(255) NOT NULL,
 	"groups" text NULL DEFAULT '[]'::text,
@@ -22,8 +22,8 @@ CREATE TABLE IF NOT EXISTS public.tasks (
 
 CREATE TABLE IF NOT EXISTS public."group" (
 	id int8 NOT NULL GENERATED ALWAYS AS IDENTITY,
-	title text NULL,
-	description text NULL,
+	title text NOT NULL,
+	description text NOT NULL,
 	created_by int4 NOT NULL,
 	users text NOT NULL,
 	CONSTRAINT group_pk PRIMARY KEY (id),
