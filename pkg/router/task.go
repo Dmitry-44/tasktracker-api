@@ -88,7 +88,7 @@ func (r *Router) GetTaskById(ctx *gin.Context) {
 }
 
 func (r *Router) CreateTask(ctx *gin.Context) {
-	user, ok := ctx.Request.Context().Value("user_id").(int)
+	user, ok := ctx.Request.Context().Value("user_id").(models.User)
 	if !ok {
 		ctx.IndentedJSON(
 			http.StatusUnauthorized,
@@ -120,7 +120,7 @@ func (r *Router) CreateTask(ctx *gin.Context) {
 			})
 		return
 	}
-	id, err := r.services.Task.CreateTask(user, task)
+	id, err := r.services.Task.CreateTask(user.Id, task)
 	if err != nil {
 		ctx.IndentedJSON(
 			http.StatusBadRequest,
