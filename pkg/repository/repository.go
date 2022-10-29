@@ -2,22 +2,20 @@ package repository
 
 import (
 	"database/sql"
-	"tasktracker-api/pkg/models"
+	"tasktracker-api/pkg/interfaces"
 )
 
-type Tasks interface {
-	GetAll(user int) (models.TaskList, error)
-	GetTaskById(int, int) (models.Task, error)
-	CreateTask(int, models.TaskData) (int, error)
-	UpdateTask(int, int, models.TaskData) error
-	DeleteTask(int, int) error
-}
+type IUser interface{ interfaces.IUser }
+type ITask interface{ interfaces.ITask }
+
 type Repository struct {
-	Tasks
+	ITask
+	IUser
 }
 
 func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
-		Tasks: NewTaskRepo(db),
+		ITask: NewTasksRepo(db),
+		IUser: NewUsersRepo(db),
 	}
 }

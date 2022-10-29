@@ -1,24 +1,20 @@
 package service
 
 import (
-	"tasktracker-api/pkg/models"
+	"tasktracker-api/pkg/interfaces"
 	"tasktracker-api/pkg/repository"
 )
 
-type Tasks interface {
-	GetAll(user int) (models.TaskList, error)
-	GetTaskById(int, int) (models.Task, error)
-	CreateTask(int, models.TaskData) (int, error)
-	UpdateTask(int, int, models.TaskData) error
-	DeleteTask(int, int) error
-}
-
+type IUser interface{ interfaces.IUser }
+type ITask interface{ interfaces.ITask }
 type Service struct {
-	Tasks
+	ITask
+	IUser
 }
 
 func NewService(repo *repository.Repository) *Service {
 	return &Service{
-		Tasks: NewTaskService(repo.Tasks),
+		ITask: NewTasksService(repo.ITask),
+		IUser: NewAuthService(repo.IUser, repo.ITask),
 	}
 }

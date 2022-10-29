@@ -8,15 +8,15 @@ import (
 	"tasktracker-api/pkg/models"
 )
 
-type TaskRepo struct {
+type TasksRepo struct {
 	db *sql.DB
 }
 
-func NewTaskRepo(db *sql.DB) *TaskRepo {
-	return &TaskRepo{db: db}
+func NewTasksRepo(db *sql.DB) *TasksRepo {
+	return &TasksRepo{db: db}
 }
 
-func (r *TaskRepo) GetAll(user int) (models.TaskList, error) {
+func (r *TasksRepo) GetAll(user int) (models.TaskList, error) {
 	taskList := models.TaskList{}
 	taskList.Tasks = make([]models.Task, 0)
 	rows, err := r.db.Query("SELECT * FROM tasks WHERE created_by=($1)", user)
@@ -35,7 +35,7 @@ func (r *TaskRepo) GetAll(user int) (models.TaskList, error) {
 	return taskList, nil
 }
 
-func (r *TaskRepo) GetTaskById(user int, taskId int) (models.Task, error) {
+func (r *TasksRepo) GetTaskById(user int, taskId int) (models.Task, error) {
 	task := models.Task{}
 	err := r.db.QueryRow("SELECT * FROM tasks WHERE id=($1) AND created_by=($2)", taskId, user).Scan(&task.Id, &task.Title, &task.Status, &task.CreatedBy, &task.Priority, &task.Description, &task.GroupId)
 	if err != nil {
@@ -44,7 +44,7 @@ func (r *TaskRepo) GetTaskById(user int, taskId int) (models.Task, error) {
 	return task, nil
 }
 
-func (r *TaskRepo) CreateTask(user int, task models.TaskData) (int, error) {
+func (r *TasksRepo) CreateTask(user int, task models.TaskData) (int, error) {
 	var createdTaskId int
 	set := make([]string, 0)
 	numbersSet := make([]string, 0)
@@ -93,7 +93,7 @@ func (r *TaskRepo) CreateTask(user int, task models.TaskData) (int, error) {
 	return createdTaskId, nil
 }
 
-func (r *TaskRepo) UpdateTask(user int, id int, task models.TaskData) error {
+func (r *TasksRepo) UpdateTask(user int, id int, task models.TaskData) error {
 	set := make([]string, 0)
 	args := make([]interface{}, 0)
 	argsId := 1
@@ -128,7 +128,7 @@ func (r *TaskRepo) UpdateTask(user int, id int, task models.TaskData) error {
 	return nil
 }
 
-func (r *TaskRepo) DeleteTask(user int, id int) error {
+func (r *TasksRepo) DeleteTask(user int, id int) error {
 	err := r.db.QueryRow("DELETE FROM tasks WHERE id=($1) and created_by=($2)", id, user)
 	if err != nil {
 		return err.Err()
