@@ -16,27 +16,28 @@ func NewTaskRepo(db *sql.DB) *TaskRepo {
 	return &TaskRepo{db: db}
 }
 
-func (r *TaskRepo) GetAll() (models.TaskList, error) {
-	list := models.TaskList{}
-	rows, err := r.db.Query("SELECT * FROM tasks")
+func (r *TaskRepo) GetAll(user int) (models.TaskList, error) {
+	taskList := models.TaskList{}
+	taskList.Tasks = make([]models.Task, 0)
+	rows, err := r.db.Query("SELECT * FROM tasks WHERE created_by=($1)", user)
 	if err != nil {
-		return list, err
+		return taskList, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var task models.Task
-		err := rows.Scan(&task.Id, &task.Title, &task.Status)
+		err := rows.Scan(&task.Id, &task.Title, &task.Status, &task.CreatedBy, &task.Priority, &task.Description, &task.GroupId)
 		if err != nil {
 			log.Fatalf("scanning database error: %v", err)
 		}
-		list.Tasks = append(list.Tasks, task)
+		taskList.Tasks = append(taskList.Tasks, task)
 	}
-	return list, nil
+	return taskList, nil
 }
 
-func (r *TaskRepo) GetTaskById(taskId int) (models.Task, error) {
+func (r *TaskRepo) GetTaskById(user int, taskId int) (models.Task, error) {
 	task := models.Task{}
-	err := r.db.QueryRow("SELECT * FROM tasks WHERE id=($1)", taskId).Scan(&task.Id, &task.Title, &task.Status)
+	err := r.db.QueryRow("SELECT * FROM tasks WHERE id=($1) AND created_by=($2)", taskId, user).Scan(&task.Id, &task.Title, &task.Status, &task.CreatedBy, &task.Priority, &task.Description, &task.GroupId)
 	if err != nil {
 		return task, err
 	}
@@ -92,8 +93,7 @@ func (r *TaskRepo) CreateTask(user int, task models.TaskData) (int, error) {
 	return createdTaskId, nil
 }
 
-// TO DO
-func (r *TaskRepo) UpdateTask(id int, task models.TaskData) error {
+func (r *TaskRepo) UpdateTask(user int, id int, task models.TaskData) error {
 	set := make([]string, 0)
 	args := make([]interface{}, 0)
 	argsId := 1
@@ -107,9 +107,20 @@ func (r *TaskRepo) UpdateTask(id int, task models.TaskData) error {
 		args = append(args, *task.Status)
 		argsId++
 	}
+	if task.Priority != nil {
+		set = append(set, fmt.Sprintf("priority=($%d)", argsId))
+		args = append(args, *task.Priority)
+		argsId++
+	}
+	if task.Description != nil {
+		set = append(set, fmt.Sprintf("description=($%d)", argsId))
+		args = append(args, *task.Description)
+		argsId++
+	}
 	setQuery := strings.Join(set, ", ")
-	query := fmt.Sprintf("UPDATE tasks SET %s WHERE id=($%v)", setQuery, argsId)
+	query := fmt.Sprintf("UPDATE tasks SET %s WHERE id=($%v) AND created_by=($%v)", setQuery, argsId, argsId+1)
 	args = append(args, id)
+	args = append(args, user)
 	_, err := r.db.Exec(query, args...)
 	if err != nil {
 		return err
@@ -117,8 +128,8 @@ func (r *TaskRepo) UpdateTask(id int, task models.TaskData) error {
 	return nil
 }
 
-func (r *TaskRepo) DeleteTask(id int) error {
-	err := r.db.QueryRow("DELETE FROM tasks WHERE id=($1)", id)
+func (r *TaskRepo) DeleteTask(user int, id int) error {
+	err := r.db.QueryRow("DELETE FROM tasks WHERE id=($1) and created_by=($2)", id, user)
 	if err != nil {
 		return err.Err()
 	}

@@ -1,7 +1,10 @@
 package router
 
 import (
-	"tasktracker-api/pkg/models"
+	"context"
+	"net/http"
+	"strconv"
+	"strings"
 	"tasktracker-api/pkg/service"
 
 	"github.com/gin-gonic/gin"
@@ -47,10 +50,22 @@ func (r *Router) InitRoutes() *gin.Engine {
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		user := models.User{
-			Id: 1,
+		user_id := extractToken(c)
+		user, err := strconv.Atoi(user_id)
+		if err != nil {
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
 		}
-		c.Set("user", user)
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), "user_id", user))
 		c.Next()
 	}
+}
+
+func extractToken(c *gin.Context) string {
+	bearToken := c.GetHeader("Authorization")
+	strArr := strings.Split(bearToken, " ")
+	if len(strArr) == 2 {
+		return strArr[1]
+	}
+	return ""
 }

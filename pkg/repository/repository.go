@@ -6,11 +6,11 @@ import (
 )
 
 type Tasks interface {
-	GetAll() (models.TaskList, error)
-	GetTaskById(int) (models.Task, error)
+	GetAll(user int) (models.TaskList, error)
+	GetTaskById(int, int) (models.Task, error)
 	CreateTask(int, models.TaskData) (int, error)
-	UpdateTask(int, models.TaskData) error
-	DeleteTask(int) error
+	UpdateTask(int, int, models.TaskData) error
+	DeleteTask(int, int) error
 }
 type Repository struct {
 	Tasks
