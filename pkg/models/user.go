@@ -16,3 +16,8 @@ type UserData struct {
 	Password *string `json:"-" binding:"required"`
 	Groups   *[]int  `json:"groups" db:"groups"`
 }
+
+type AuthData struct {
+	Username *string `json:"username" binding:"required"`
+	Password *string `json:"password" binding:"required"`
+}

@@ -22,8 +22,9 @@ func NewRouter(services *service.Service) *Router {
 func (r *Router) InitRoutes() *gin.Engine {
 
 	router := gin.New()
-	router.Use(AuthMiddleware(r))
+	router.POST("/login", r.Login)
 	api := router.Group("/api")
+	api.Use(AuthMiddleware(r))
 	{
 		v1 := api.Group("/v1")
 		{

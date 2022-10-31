@@ -78,8 +78,6 @@ func (r *UsersRepo) CreateUser(user models.UserData) (int, error) {
 		values = append(values, *user.Groups)
 		valueId++
 	}
-	set = append(set, "created_by")
-	numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
 	setString := strings.Join(set, ", ")
 	numbersSetString := strings.Join(numbersSet, ", ")
 	query := fmt.Sprintf("INSERT into users (%s) VALUES (%s) RETURNING id", setString, numbersSetString)
