@@ -10,7 +10,7 @@ import (
 )
 
 func (r *Router) GetAllTasks(ctx *gin.Context) {
-	user, ok := ctx.Request.Context().Value("user_id").(models.User)
+	user, ok := ctx.Request.Context().Value(ctxKeyUser).(models.User)
 	if !ok {
 		ctx.IndentedJSON(
 			http.StatusUnauthorized,
@@ -21,7 +21,6 @@ func (r *Router) GetAllTasks(ctx *gin.Context) {
 			})
 		return
 	}
-	fmt.Printf("use id in router - %v '\n'", user.Id)
 	data, err := r.services.Task.GetAll(user.Id)
 	if err != nil {
 		ctx.IndentedJSON(
@@ -44,7 +43,7 @@ func (r *Router) GetAllTasks(ctx *gin.Context) {
 }
 
 func (r *Router) GetTaskById(ctx *gin.Context) {
-	user, ok := ctx.Request.Context().Value("user_id").(int)
+	user, ok := ctx.Request.Context().Value(ctxKeyUser).(models.User)
 	if !ok {
 		ctx.IndentedJSON(
 			http.StatusUnauthorized,
@@ -67,7 +66,7 @@ func (r *Router) GetTaskById(ctx *gin.Context) {
 			})
 		return
 	}
-	task, err := r.services.Task.GetTaskById(user, taskId)
+	task, err := r.services.Task.GetTaskById(user.Id, taskId)
 	if err != nil {
 		ctx.IndentedJSON(
 			http.StatusBadRequest,
@@ -88,7 +87,7 @@ func (r *Router) GetTaskById(ctx *gin.Context) {
 }
 
 func (r *Router) CreateTask(ctx *gin.Context) {
-	user, ok := ctx.Request.Context().Value("user_id").(models.User)
+	user, ok := ctx.Request.Context().Value(ctxKeyUser).(models.User)
 	if !ok {
 		ctx.IndentedJSON(
 			http.StatusUnauthorized,
@@ -142,7 +141,7 @@ func (r *Router) CreateTask(ctx *gin.Context) {
 }
 
 func (r *Router) UpdateTask(ctx *gin.Context) {
-	user, ok := ctx.Request.Context().Value("user_id").(int)
+	user, ok := ctx.Request.Context().Value(ctxKeyUser).(models.User)
 	if !ok {
 		ctx.IndentedJSON(http.StatusUnauthorized, gin.H{"data": "Unauthorized user"})
 		return
@@ -158,7 +157,7 @@ func (r *Router) UpdateTask(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusOK, gin.H{"data": "Server error"})
 		return
 	}
-	err = r.services.Task.UpdateTask(user, id, task)
+	err = r.services.Task.UpdateTask(user.Id, id, task)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
 		return
@@ -173,7 +172,7 @@ func (r *Router) UpdateTask(ctx *gin.Context) {
 }
 
 func (r *Router) DeleteTask(ctx *gin.Context) {
-	user, ok := ctx.Request.Context().Value("user_id").(int)
+	user, ok := ctx.Request.Context().Value(ctxKeyUser).(models.User)
 	if !ok {
 		ctx.IndentedJSON(http.StatusUnauthorized, gin.H{"data": "Unauthorized user"})
 		return
@@ -184,7 +183,7 @@ func (r *Router) DeleteTask(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": "Server error"})
 		return
 	}
-	err = r.services.Task.DeleteTask(user, taskId)
+	err = r.services.Task.DeleteTask(user.Id, taskId)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
 		return

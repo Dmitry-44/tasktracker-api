@@ -49,6 +49,10 @@ func (r *Router) InitRoutes() *gin.Engine {
 	return router
 }
 
+type userCtx string
+
+const ctxKeyUser userCtx = "user"
+
 func AuthMiddleware(r *Router) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		fmt.Print("auth middleware")
@@ -60,13 +64,12 @@ func AuthMiddleware(r *Router) gin.HandlerFunc {
 			return
 		}
 		user, err := r.services.Auth.GetUserById(userId)
-		fmt.Printf("user is %v", user)
 		if err != nil {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		fmt.Printf("user is %v", user)
-		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), "user_id", user))
+		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), ctxKeyUser, user))
 		c.Next()
 	}
 }
