@@ -5,14 +5,26 @@ import (
 	"tasktracker-api/pkg/repository"
 )
 
-type TaskService struct {
-	repo repository.Tasks
+type TasksService struct {
+	tasksRepo repository.Tasks
 }
 
-func NewTaskService(repo repository.Tasks) *TaskService {
-	return &TaskService{repo: repo}
+func NewTasksService(tasksRepo repository.Tasks) *TasksService {
+	return &TasksService{tasksRepo: tasksRepo}
 }
 
-func (s *TaskService) GetAll(userId int) ([]models.Task, error) {
-	return s.repo.GetAll(userId)
+func (s *TasksService) GetAll(user int) (models.TaskList, error) {
+	return s.tasksRepo.GetAll(user)
+}
+func (s *TasksService) GetTaskById(user int, taskId int) (models.Task, error) {
+	return s.tasksRepo.GetTaskById(user, taskId)
+}
+func (s *TasksService) CreateTask(user int, task models.TaskData) (int, error) {
+	return s.tasksRepo.CreateTask(user, task)
+}
+func (s *TasksService) UpdateTask(user int, taskId int, task models.TaskData) error {
+	return s.tasksRepo.UpdateTask(user, taskId, task)
+}
+func (s *TasksService) DeleteTask(user int, taskId int) error {
+	return s.tasksRepo.DeleteTask(user, taskId)
 }

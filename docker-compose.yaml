@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  tasktracker-api:
+    build: ./
+    ports:
+      - 8080:8080
+
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: secret
+    ports:
+      - 5432:5432
+    volumes:
+      - tasktracker-db:/var/lib/postgresql/data
+
+  migrator:
+    image: migrate/migrate:latest
+    volumes:
+     - ./db/migrations:/migrations
+    command: ["-path", "/migrations", "-database",  "postgres://postgres:secret@db:5432/postgres?sslmode=disable", "up"]
+    depends_on:
+      - db
+
+      
+volumes:
+  tasktracker-db:
