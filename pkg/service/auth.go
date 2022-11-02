@@ -35,11 +35,20 @@ func NewAuthService(usersRepo repository.Users, tasksRepo repository.Tasks) *Aut
 
 func (s *AuthService) Login(user models.AuthData) (string, error) {
 	var jwtToken string
-	userData := models.UserData{
-		Username: user.Username,
-		Password: user.Password,
+	userId, err := s.CheckUser(*user.Username, *user.Password)
+	if err != nil {
+		return jwtToken, err
 	}
-	userId, err := s.usersRepo.CreateUser(userData)
+	jwtToken, err = s.GenerateToken(userId)
+	if err != nil {
+		return jwtToken, err
+	}
+	return jwtToken, nil
+}
+
+func (s *AuthService) Logup(user models.UserData) (string, error) {
+	var jwtToken string
+	userId, err := s.CreateUser(user)
 	if err != nil {
 		return jwtToken, err
 	}
@@ -66,31 +75,24 @@ func (s *AuthService) GenerateToken(id int) (string, error) {
 	return tokenString, nil
 }
 
-//	func (s *AuthService) GetAll(user int) (models.TaskList, error) {
-//		return s.repo.GetAll(user)
-//	}
 func (s *AuthService) GetUserById(userId int) (models.User, error) {
 	return s.usersRepo.GetUserById(userId)
 }
 
+func (s *AuthService) CheckUser(username string, password string) (int, error) {
+	return s.usersRepo.GetUser(username, password)
+}
+
 func (s *AuthService) CreateUser(user models.UserData) (int, error) {
-	userWithHashedPassword := user
-	HashedPassword, err := s.HashedPassword(user.Password)
+	Password, err := s.HashedPassword(*user.Password)
+	user.Password = &Password
 	if err != nil {
 		return 0, err
 	}
-	userWithHashedPassword.Password = &HashedPassword
-	return s.usersRepo.CreateUser(userWithHashedPassword)
+	return s.usersRepo.CreateUser(user)
 }
 
-func (s *AuthService) HashedPassword(password *string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(*password), bcrypt.DefaultCost)
+func (s *AuthService) HashedPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
 }
-
-// func (s *AuthService) UpdateTask(user int, taskId int, task models.TaskData) error {
-// 	return s.repo.UpdateTask(user, taskId, task)
-// }
-// func (s *AuthService) DeleteTask(user int, taskId int) error {
-// 	return s.repo.DeleteTask(user, taskId)
-// }

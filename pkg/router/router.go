@@ -23,6 +23,7 @@ func (r *Router) InitRoutes() *gin.Engine {
 
 	router := gin.New()
 	router.POST("/login", r.Login)
+	router.POST("/logup", r.Logup)
 	api := router.Group("/api")
 	api.Use(AuthMiddleware(r))
 	{

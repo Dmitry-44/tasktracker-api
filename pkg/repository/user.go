@@ -48,6 +48,16 @@ func (r *UsersRepo) GetUserById(id int) (models.User, error) {
 	return user, nil
 }
 
+func (r *UsersRepo) GetUser(username string, password string) (int, error) {
+	var id int
+	err := r.db.QueryRow("SELECT id FROM users WHERE username=($1) AND password=($2)", username, password).Scan(&id)
+	if err != nil {
+		fmt.Printf("err db - %v", err.Error())
+		return id, err
+	}
+	return id, nil
+}
+
 func (r *UsersRepo) CreateUser(user models.UserData) (int, error) {
 	var createdUserId int
 	set := make([]string, 0)

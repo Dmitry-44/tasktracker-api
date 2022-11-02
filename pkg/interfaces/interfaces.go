@@ -12,6 +12,7 @@ type ITask interface {
 type IUser interface {
 	// GetAll(user int) (models.TaskList, error)
 	GetUserById(int) (models.User, error)
+	GetUser(string, string) (int, error)
 	CreateUser(models.UserData) (int, error)
 	// UpdateTask(int, int, models.TaskData) error
 	// DeleteTask(int, int) error
@@ -26,6 +27,7 @@ type ITaskService interface {
 type IAuthService interface {
 	// GetAll(user int) (models.TaskList, error)
 	Login(models.AuthData) (string, error)
+	Logup(models.UserData) (string, error)
 	GetUserById(int) (models.User, error)
 	CreateUser(models.UserData) (int, error)
 	// UpdateTask(int, int, models.TaskData) error
