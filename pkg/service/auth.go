@@ -1,12 +1,13 @@
 package service
 
 import (
-	"fmt"
+	"strconv"
 	"tasktracker-api/pkg/models"
 	"tasktracker-api/pkg/repository"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -16,15 +17,14 @@ type AuthService struct {
 }
 
 type tokenClaims struct {
-	jwt.StandardClaims
-	Id int `json:"user_id"`
+	jwt.RegisteredClaims
 }
 
 const (
 	tokenLifeTime = 24 * time.Hour
 )
 
-var jwtSignedKey = []byte("qrkjk#4#%35FSFJlja#4353KSFjH")
+var jwtSignedKey = []byte(viper.GetString("jwtSignedKey"))
 
 func NewAuthService(usersRepo repository.Users, tasksRepo repository.Tasks) *AuthService {
 	return &AuthService{
@@ -60,15 +60,14 @@ func (s *AuthService) Logup(user models.UserData) (string, error) {
 }
 
 func (s *AuthService) GenerateToken(id int) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, &tokenClaims{
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenLifeTime).Unix(),
-			IssuedAt:  time.Now().Unix(),
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenLifeTime)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Subject:   strconv.Itoa(id),
 		},
-		id,
 	})
 	tokenString, err := token.SignedString(jwtSignedKey)
-	fmt.Printf("tokenstring is %v '\n'", token)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +79,15 @@ func (s *AuthService) GetUserById(userId int) (models.User, error) {
 }
 
 func (s *AuthService) CheckUser(username string, password string) (int, error) {
-	return s.usersRepo.GetUser(username, password)
+	userFromDB, err := s.usersRepo.GetUserByLogin(username)
+	if err != nil {
+		return 0, err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(userFromDB.Password), []byte(password))
+	if err != nil {
+		return 0, err
+	}
+	return userFromDB.Id, nil
 }
 
 func (s *AuthService) CreateUser(user models.UserData) (int, error) {

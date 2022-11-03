@@ -48,14 +48,13 @@ func (r *UsersRepo) GetUserById(id int) (models.User, error) {
 	return user, nil
 }
 
-func (r *UsersRepo) GetUser(username string, password string) (int, error) {
-	var id int
-	err := r.db.QueryRow("SELECT id FROM users WHERE username=($1) AND password=($2)", username, password).Scan(&id)
+func (r *UsersRepo) GetUserByLogin(username string) (models.User, error) {
+	var user models.User
+	err := r.db.QueryRow("SELECT id, username, password FROM users WHERE username=($1)", username).Scan(&user.Id, &user.Username, &user.Password)
 	if err != nil {
-		fmt.Printf("err db - %v", err.Error())
-		return id, err
+		return user, err
 	}
-	return id, nil
+	return user, nil
 }
 
 func (r *UsersRepo) CreateUser(user models.UserData) (int, error) {

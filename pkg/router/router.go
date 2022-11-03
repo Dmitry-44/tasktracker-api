@@ -2,13 +2,14 @@ package router
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"tasktracker-api/pkg/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/spf13/viper"
 )
 
 type Router struct {
@@ -56,31 +57,51 @@ type userCtx string
 const ctxKeyUser userCtx = "user"
 
 func AuthMiddleware(r *Router) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		fmt.Print("auth middleware")
-		user_id := extractToken(c)
-		userId, err := strconv.Atoi(user_id)
-
+	return func(ctx *gin.Context) {
+		token := extractTokenFromHeader(ctx)
+		if len(token) == 0 {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		claims, ok := GetClaimsFromToken(token)
+		if ok != nil {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		userIDString := claims["sub"].(string)
+		userId, err := strconv.Atoi(userIDString)
 		if err != nil {
-			c.AbortWithStatus(http.StatusUnauthorized)
+			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		user, err := r.services.Auth.GetUserById(userId)
 		if err != nil {
-			c.AbortWithStatus(http.StatusUnauthorized)
+			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
-		fmt.Printf("user is %v", user)
-		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), ctxKeyUser, user))
-		c.Next()
+		ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), ctxKeyUser, user))
+		ctx.Next()
 	}
 }
 
-func extractToken(c *gin.Context) string {
+func extractTokenFromHeader(c *gin.Context) string {
 	bearToken := c.GetHeader("Authorization")
 	strArr := strings.Split(bearToken, " ")
 	if len(strArr) == 2 {
 		return strArr[1]
 	}
 	return ""
+}
+
+func GetClaimsFromToken(tokenString string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return []byte(viper.GetString("jwtSignedKey")), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, err
 }
