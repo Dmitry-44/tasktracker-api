@@ -6,7 +6,6 @@ type User struct {
 	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"email"`
 	Password string `json:"-" binding:"required"`
-	Groups   []int  `json:"groups" db:"groups"`
 }
 
 type UserData struct {

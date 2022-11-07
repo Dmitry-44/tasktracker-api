@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"tasktracker-api/pkg/models"
@@ -37,14 +36,11 @@ func NewUsersRepo(db *sql.DB) *UsersRepo {
 
 func (r *UsersRepo) GetUserById(id int) (models.User, error) {
 	user := models.User{}
-	var groupsArr string
-	err := r.db.QueryRow("SELECT * FROM users WHERE id=($1)", id).Scan(&user.Id, &user.Name, &user.Username, &user.Email, &user.Password, &groupsArr)
+	err := r.db.QueryRow("SELECT * FROM users WHERE id=($1)", id).Scan(&user.Id, &user.Name, &user.Username, &user.Email, &user.Password)
 	if err != nil {
 		fmt.Printf("err db - %v", err.Error())
 		return user, err
 	}
-	json.Unmarshal([]byte(groupsArr), &user.Groups)
-	fmt.Printf("user from db - %v '\n'", user)
 	return user, nil
 }
 
@@ -79,12 +75,6 @@ func (r *UsersRepo) CreateUser(user models.UserData) (int, error) {
 		set = append(set, "password")
 		numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
 		values = append(values, *user.Password)
-		valueId++
-	}
-	if user.Groups != nil {
-		set = append(set, "groups")
-		numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
-		values = append(values, *user.Groups)
 		valueId++
 	}
 	setString := strings.Join(set, ", ")
