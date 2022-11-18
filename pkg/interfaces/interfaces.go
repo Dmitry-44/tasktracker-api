@@ -33,3 +33,11 @@ type IAuthService interface {
 	// UpdateTask(int, int, models.TaskData) error
 	// DeleteTask(int, int) error
 }
+
+type IGroupService interface {
+	CreateGroup(int, models.GroupData) (int, error)
+}
+type IGroup interface {
+	CreateGroup(int, models.GroupData) (int, error)
+	SetUserGroup(int, int) error
+}

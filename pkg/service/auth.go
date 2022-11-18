@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -24,7 +23,7 @@ const (
 	tokenLifeTime = 24 * time.Hour
 )
 
-var jwtSignedKey = []byte(viper.GetString("jwtSignedKey"))
+var jwtSignedKey = []byte("secret")
 
 func NewAuthService(usersRepo repository.Users, tasksRepo repository.Tasks) *AuthService {
 	return &AuthService{

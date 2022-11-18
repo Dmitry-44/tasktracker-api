@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/spf13/viper"
 )
 
 type Router struct {
@@ -39,11 +39,11 @@ func (r *Router) InitRoutes() *gin.Engine {
 				tasks.DELETE("/:id", r.DeleteTask)
 
 			}
-			// groups := v1.Group("/groups")
+			groups := v1.Group("/groups")
 			{
 				// groups.GET("/", r.GetAllGroupes)
 				// groups.GET("/:id", r.GetGroupById)
-				// groups.POST("/", r.CreateGroup)
+				groups.POST("/", r.CreateGroup)
 				// groups.PUT("/:id", r.UpdateGroup)
 				// groups.DELETE("/:id", r.DeleteGroup)
 			}
@@ -95,9 +95,10 @@ func extractTokenFromHeader(c *gin.Context) string {
 
 func GetClaimsFromToken(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte(viper.GetString("jwtSignedKey")), nil
+		return []byte("secret"), nil
 	})
 	if err != nil {
+		log.Printf("get claims error: %v", err)
 		return nil, err
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
