@@ -3,19 +3,20 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"tasktracker-api/pkg/models"
 )
 
-type UsersRepo struct {
+type GroupsRepo struct {
 	db *sql.DB
 }
 
-func NewUsersRepo(db *sql.DB) *UsersRepo {
-	return &UsersRepo{db: db}
+func NewGroupsRepo(db *sql.DB) *GroupsRepo {
+	return &GroupsRepo{db: db}
 }
 
-// func (r *UsersRepo) GetAll(user int) (models.TaskList, error) {
+// func (r *TasksRepo) GetAll(user int) (models.TaskList, error) {
 // 	taskList := models.TaskList{}
 // 	taskList.Tasks = make([]models.Task, 0)
 // 	rows, err := r.db.Query("SELECT * FROM tasks WHERE created_by=($1)", user)
@@ -34,60 +35,66 @@ func NewUsersRepo(db *sql.DB) *UsersRepo {
 // 	return taskList, nil
 // }
 
-func (r *UsersRepo) GetUserById(id int) (models.User, error) {
-	user := models.User{}
-	err := r.db.QueryRow("SELECT * FROM users WHERE id=($1)", id).Scan(&user.Id, &user.Name, &user.Username, &user.Email, &user.Password)
-	if err != nil {
-		fmt.Printf("err db - %v", err.Error())
-		return user, err
-	}
-	return user, nil
-}
+// func (r *TasksRepo) GetTaskById(user int, taskId int) (models.Task, error) {
+// 	task := models.Task{}
+// 	err := r.db.QueryRow("SELECT * FROM tasks WHERE id=($1) AND created_by=($2)", taskId, user).Scan(&task.Id, &task.Title, &task.Status, &task.CreatedBy, &task.Priority, &task.Description, &task.GroupId)
+// 	if err != nil {
+// 		return task, err
+// 	}
+// 	return task, nil
+// }
 
-func (r *UsersRepo) GetUserByLogin(username string) (models.User, error) {
-	var user models.User
-	err := r.db.QueryRow("SELECT id, username, password FROM users WHERE username=($1)", username).Scan(&user.Id, &user.Username, &user.Password)
-	if err != nil {
-		return user, err
-	}
-	return user, nil
-}
-
-func (r *UsersRepo) CreateUser(user models.UserData) (int, error) {
-	var createdUserId int
+func (r *GroupsRepo) CreateGroup(user int, group models.GroupData) (int, error) {
+	var createdGroupId int
 	set := make([]string, 0)
 	numbersSet := make([]string, 0)
 	values := make([]interface{}, 0)
 	valueId := 1
-	if user.Name != nil {
+	if group.Name != nil {
 		set = append(set, "name")
 		numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
-		values = append(values, *user.Name)
+		values = append(values, *group.Name)
 		valueId++
 	}
-	if user.Username != nil {
-		set = append(set, "username")
+	if group.Description != nil {
+		set = append(set, "description")
 		numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
-		values = append(values, *user.Username)
+		values = append(values, *group.Description)
 		valueId++
 	}
-	if user.Password != nil {
-		set = append(set, "password")
-		numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
-		values = append(values, *user.Password)
-		valueId++
-	}
+	set = append(set, "created_by")
+	numbersSet = append(numbersSet, fmt.Sprintf("$%v", valueId))
+	values = append(values, user)
 	setString := strings.Join(set, ", ")
 	numbersSetString := strings.Join(numbersSet, ", ")
-	query := fmt.Sprintf("INSERT into users (%s) VALUES (%s) RETURNING id", setString, numbersSetString)
-	err := r.db.QueryRow(query, values...).Scan(&createdUserId)
+	tx, err := r.db.Begin()
 	if err != nil {
-		return createdUserId, err
+		return createdGroupId, err
 	}
-	return createdUserId, nil
+	query := fmt.Sprintf("INSERT into groups (%s) VALUES (%s) RETURNING id", setString, numbersSetString)
+	err = r.db.QueryRow(query, values...).Scan(&createdGroupId)
+	if err != nil {
+		return createdGroupId, err
+	}
+	err = r.SetUserGroup(user, createdGroupId)
+	if err != nil {
+		tx.Rollback()
+		return createdGroupId, err
+	}
+	tx.Commit()
+	return createdGroupId, nil
 }
 
-// func (r *UsersRepo) UpdateTask(user int, id int, task models.TaskData) error {
+func (r *GroupsRepo) SetUserGroup(user int, group int) error {
+	res, err := r.db.Exec("INSERT into public.user_group (user_id, group_id) VALUES ($1, $2)", user, group)
+	if err != nil {
+		return err
+	}
+	log.Printf("db: insert into public.user_group result: %v", res)
+	return nil
+}
+
+// func (r *TasksRepo) UpdateTask(user int, id int, task models.TaskData) error {
 // 	set := make([]string, 0)
 // 	args := make([]interface{}, 0)
 // 	argsId := 1
@@ -122,7 +129,7 @@ func (r *UsersRepo) CreateUser(user models.UserData) (int, error) {
 // 	return nil
 // }
 
-// func (r *UsersRepo) DeleteTask(user int, id int) error {
+// func (r *TasksRepo) DeleteTask(user int, id int) error {
 // 	err := r.db.QueryRow("DELETE FROM tasks WHERE id=($1) and created_by=($2)", id, user)
 // 	if err != nil {
 // 		return err.Err()

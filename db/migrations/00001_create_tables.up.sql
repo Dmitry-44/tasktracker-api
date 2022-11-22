@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS public."group" (
 	title text NOT NULL,
 	description text NOT NULL,
 	created_by int4 NOT NULL,
-	users text NOT NULL,
 	CONSTRAINT group_pk PRIMARY KEY (id),
 	CONSTRAINT u_id FOREIGN KEY (created_by) REFERENCES public.users(id)
 );

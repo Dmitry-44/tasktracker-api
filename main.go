@@ -1,8 +1,9 @@
 package main
 
 import (
-	"database/sql"
+	"fmt"
 	"log"
+	database "tasktracker-api/db"
 	"tasktracker-api/pkg/repository"
 	router "tasktracker-api/pkg/router"
 	"tasktracker-api/pkg/service"
@@ -17,26 +18,24 @@ func main() {
 	if err != nil {
 		log.Fatalf("error initializing configs: %s", err.Error())
 	}
+	DBConfig := database.DBConfig{
+		Username: viper.GetString("db.username"),
+		Password: viper.GetString("db.password"),
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		DBname:   viper.GetString("db.dbname"),
+		SSLmode:  viper.GetString("db.sslmode"),
+	}
 	// Opening a driver typically will not attempt to connect to the database.
-	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=secret dbname=postgres sslmode=disable")
+	db, err := database.NewDatabase(DBConfig)
 	if err != nil {
-		// This will not be a connection error, but a DSN parse error or
-		// another initialization error.
-		log.Fatal(err)
+		log.Fatal(fmt.Printf("init database error : %v", err))
+	}
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(fmt.Printf("ping database error : %v", err))
 	}
 	defer db.Close()
-	//MIGRATIONS
-	// m, err := migrate.New(
-	// 	"file://db/migrations/",
-	// 	"postgres://postgres:secret@localhost:5432/postgres?sslmode=disable")
-	// if err != nil {
-	// 	fmt.Println("migr err")
-	// 	log.Fatal("migrate error: ", err)
-	// }
-	// if err := m.Up(); err != nil {
-	// 	fmt.Println("migr err2")
-	// 	log.Fatal(err)
-	// }
 
 	repository := repository.NewRepository(db)
 	services := service.NewService(repository)
