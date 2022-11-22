@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -10,10 +11,16 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/gorilla/websocket"
 )
 
 type Router struct {
 	services *service.Service
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 }
 
 func NewRouter(services *service.Service) *Router {
@@ -23,8 +30,15 @@ func NewRouter(services *service.Service) *Router {
 func (r *Router) InitRoutes() *gin.Engine {
 
 	router := gin.New()
+	router.LoadHTMLGlob("templates/*.html")
 	router.POST("/login", r.Login)
 	router.POST("/logup", r.Logup)
+	router.GET("/websocket", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "websocket.html", gin.H{})
+	})
+	router.GET("/ws", func(c *gin.Context) {
+		wsHandler(c.Writer, c.Request)
+	})
 	api := router.Group("/api")
 	api.Use(AuthMiddleware(r))
 	{
@@ -50,6 +64,27 @@ func (r *Router) InitRoutes() *gin.Engine {
 		}
 	}
 	return router
+}
+
+func wsHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	for {
+		messageType, p, err := conn.ReadMessage()
+		fmt.Printf("messageType is %v, p is %v\n", messageType, p)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		if err := conn.WriteMessage(messageType, p); err != nil {
+			log.Println(err)
+			return
+		}
+	}
 }
 
 type userCtx string
