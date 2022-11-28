@@ -1,6 +1,10 @@
 package interfaces
 
-import "tasktracker-api/pkg/models"
+import (
+	"tasktracker-api/pkg/models"
+
+	"github.com/gin-gonic/gin"
+)
 
 type ITask interface {
 	GetAll(user int) (models.TaskList, error)
@@ -35,9 +39,15 @@ type IAuthService interface {
 }
 
 type IGroupService interface {
+	GetAll(int) (models.GroupList, error)
+	GetGroupById(ctx *gin.Context, userId int) (models.Group, error)
 	CreateGroup(int, models.GroupData) (int, error)
+	DeleteGroup(ctx *gin.Context, userId int) error
 }
 type IGroup interface {
+	GetAll(int) (models.GroupList, error)
+	GetGroupById(int) (models.Group, error)
 	CreateGroup(int, models.GroupData) (int, error)
-	SetUserGroup(int, int) error
+	// SetUserGroup(int, int) error
+	DeleteGroupById(int) error
 }

@@ -16,33 +16,37 @@ func NewGroupsRepo(db *sql.DB) *GroupsRepo {
 	return &GroupsRepo{db: db}
 }
 
-// func (r *TasksRepo) GetAll(user int) (models.TaskList, error) {
-// 	taskList := models.TaskList{}
-// 	taskList.Tasks = make([]models.Task, 0)
-// 	rows, err := r.db.Query("SELECT * FROM tasks WHERE created_by=($1)", user)
-// 	if err != nil {
-// 		return taskList, err
-// 	}
-// 	defer rows.Close()
-// 	for rows.Next() {
-// 		var task models.Task
-// 		err := rows.Scan(&task.Id, &task.Title, &task.Status, &task.CreatedBy, &task.Priority, &task.Description, &task.GroupId)
-// 		if err != nil {
-// 			log.Fatalf("scanning database error: %v", err)
-// 		}
-// 		taskList.Tasks = append(taskList.Tasks, task)
-// 	}
-// 	return taskList, nil
-// }
+func (r *GroupsRepo) GetAll(user int) (models.GroupList, error) {
+	groupList := models.GroupList{}
+	groupList.Groups = make([]models.Group, 0)
+	rows, err := r.db.Query(
+		`SELECT public."groups".id, public."groups".name, public."groups".description, public."groups".created_by 
+		FROM public."groups" 
+		LEFT JOIN user_group ON public."groups".id=user_group.group_id 
+		WHERE user_id=($1);`, user)
+	if err != nil {
+		return groupList, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var group models.Group
+		err := rows.Scan(&group.Id, &group.Name, &group.Description, &group.CreatedBy)
+		if err != nil {
+			log.Fatalf("scanning database error: %v", err)
+		}
+		groupList.Groups = append(groupList.Groups, group)
+	}
+	return groupList, nil
+}
 
-// func (r *TasksRepo) GetTaskById(user int, taskId int) (models.Task, error) {
-// 	task := models.Task{}
-// 	err := r.db.QueryRow("SELECT * FROM tasks WHERE id=($1) AND created_by=($2)", taskId, user).Scan(&task.Id, &task.Title, &task.Status, &task.CreatedBy, &task.Priority, &task.Description, &task.GroupId)
-// 	if err != nil {
-// 		return task, err
-// 	}
-// 	return task, nil
-// }
+func (r *GroupsRepo) GetGroupById(id int) (models.Group, error) {
+	group := models.Group{}
+	err := r.db.QueryRow("SELECT * FROM groups WHERE id=($1)", id).Scan(&group.Id, &group.Name, &group.Description, &group.CreatedBy)
+	if err != nil {
+		return group, err
+	}
+	return group, nil
+}
 
 func (r *GroupsRepo) CreateGroup(user int, group models.GroupData) (int, error) {
 	var createdGroupId int
@@ -72,26 +76,21 @@ func (r *GroupsRepo) CreateGroup(user int, group models.GroupData) (int, error) 
 		return createdGroupId, err
 	}
 	query := fmt.Sprintf("INSERT into groups (%s) VALUES (%s) RETURNING id", setString, numbersSetString)
-	err = r.db.QueryRow(query, values...).Scan(&createdGroupId)
+	err = tx.QueryRow(query, values...).Scan(&createdGroupId)
 	if err != nil {
+		_ = tx.Rollback()
 		return createdGroupId, err
 	}
-	err = r.SetUserGroup(user, createdGroupId)
+	res, err := tx.Exec("INSERT into public.user_group (user_id, group_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", user, createdGroupId)
+	_ = res
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 		return createdGroupId, err
 	}
-	tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return createdGroupId, err
+	}
 	return createdGroupId, nil
-}
-
-func (r *GroupsRepo) SetUserGroup(user int, group int) error {
-	res, err := r.db.Exec("INSERT into public.user_group (user_id, group_id) VALUES ($1, $2)", user, group)
-	if err != nil {
-		return err
-	}
-	log.Printf("db: insert into public.user_group result: %v", res)
-	return nil
 }
 
 // func (r *TasksRepo) UpdateTask(user int, id int, task models.TaskData) error {
@@ -129,10 +128,11 @@ func (r *GroupsRepo) SetUserGroup(user int, group int) error {
 // 	return nil
 // }
 
-// func (r *TasksRepo) DeleteTask(user int, id int) error {
-// 	err := r.db.QueryRow("DELETE FROM tasks WHERE id=($1) and created_by=($2)", id, user)
-// 	if err != nil {
-// 		return err.Err()
-// 	}
-// 	return nil
-// }
+func (r *GroupsRepo) DeleteGroupById(id int) error {
+	res, err := r.db.Exec(`DELETE FROM public."groups" WHERE id=($1);`, id)
+	_ = res
+	if err != nil {
+		return err
+	}
+	return nil
+}

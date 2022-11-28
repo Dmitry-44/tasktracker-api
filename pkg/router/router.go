@@ -41,11 +41,11 @@ func (r *Router) InitRoutes() *gin.Engine {
 			}
 			groups := v1.Group("/groups")
 			{
-				// groups.GET("/", r.GetAllGroupes)
-				// groups.GET("/:id", r.GetGroupById)
+				groups.GET("/", r.GetAllGroupes)
+				groups.GET("/:id", r.GetGroupById)
 				groups.POST("/", r.CreateGroup)
 				// groups.PUT("/:id", r.UpdateGroup)
-				// groups.DELETE("/:id", r.DeleteGroup)
+				groups.DELETE("/:id", r.DeleteGroup)
 			}
 		}
 	}
