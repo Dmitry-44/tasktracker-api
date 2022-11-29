@@ -22,6 +22,6 @@ func NewService(repo *repository.Repository) *Service {
 	return &Service{
 		Task:  NewTasksService(repo.Tasks),
 		Auth:  NewAuthService(repo.Users, repo.Tasks),
-		Group: NewGroupService(repo.Groups),
+		Group: NewGroupService(repo.Groups, repo.Tasks),
 	}
 }

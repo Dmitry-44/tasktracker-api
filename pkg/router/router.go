@@ -43,6 +43,7 @@ func (r *Router) InitRoutes() *gin.Engine {
 			{
 				groups.GET("/", r.GetAllGroupes)
 				groups.GET("/:id", r.GetGroupById)
+				groups.GET("/:id/tasks", r.GetTasksByGroupId)
 				groups.POST("/", r.CreateGroup)
 				// groups.PUT("/:id", r.UpdateGroup)
 				groups.DELETE("/:id", r.DeleteGroup)

@@ -12,10 +12,14 @@ import (
 
 type GroupsService struct {
 	groupsRepo repository.Groups
+	tasksRepo  repository.Tasks
 }
 
-func NewGroupService(groupsRepo repository.Groups) *GroupsService {
-	return &GroupsService{groupsRepo: groupsRepo}
+func NewGroupService(groupsRepo repository.Groups, tasksRepo repository.Tasks) *GroupsService {
+	return &GroupsService{
+		groupsRepo: groupsRepo,
+		tasksRepo:  tasksRepo,
+	}
 }
 
 func (s *GroupsService) GetAll(user int) (models.GroupList, error) {
@@ -61,6 +65,22 @@ func (s *GroupsService) DeleteGroup(ctx *gin.Context, user int) error {
 		return fmt.Errorf("server error: %v", err.Error())
 	}
 	return nil
+}
+func (s *GroupsService) GetTasksByGroupId(ctx *gin.Context, user int) (models.TaskList, error) {
+	tasks := models.TaskList{}
+	groupId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		return tasks, fmt.Errorf("server error: %v", err.Error())
+	}
+	ok := s.isUserBelongsToGroup(user, groupId)
+	if !ok {
+		return tasks, errors.New("server error")
+	}
+	tasks, err = s.tasksRepo.GetTasksByGroupId(groupId)
+	if err != nil {
+		return tasks, fmt.Errorf("server error: %v", err.Error())
+	}
+	return tasks, nil
 }
 
 func (s *GroupsService) isUserBelongsToGroup(user int, group int) bool {

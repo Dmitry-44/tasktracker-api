@@ -135,3 +135,21 @@ func (r *TasksRepo) DeleteTask(user int, id int) error {
 	}
 	return nil
 }
+func (r *TasksRepo) GetTasksByGroupId(id int) (models.TaskList, error) {
+	taskList := models.TaskList{}
+	taskList.Tasks = make([]models.Task, 0)
+	rows, err := r.db.Query("SELECT * FROM tasks WHERE group_id=($1)", id)
+	if err != nil {
+		return taskList, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var task models.Task
+		err := rows.Scan(&task.Id, &task.Title, &task.Status, &task.CreatedBy, &task.Priority, &task.Description, &task.GroupId)
+		if err != nil {
+			log.Fatalf("scanning database error: %v", err)
+		}
+		taskList.Tasks = append(taskList.Tasks, task)
+	}
+	return taskList, nil
+}

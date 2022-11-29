@@ -24,7 +24,7 @@ func (r *Router) GetAllTasks(ctx *gin.Context) {
 	data, err := r.services.Task.GetAll(user.Id)
 	if err != nil {
 		ctx.IndentedJSON(
-			http.StatusBadRequest,
+			http.StatusBadGateway,
 			gin.H{
 				"status":       models.StatusError,
 				"data":         "[]",
@@ -33,7 +33,7 @@ func (r *Router) GetAllTasks(ctx *gin.Context) {
 		return
 	}
 	ctx.IndentedJSON(
-		http.StatusCreated,
+		http.StatusOK,
 		gin.H{
 			"status":       models.StatusSuccess,
 			"data":         data,
