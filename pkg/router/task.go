@@ -119,13 +119,13 @@ func (r *Router) CreateTask(ctx *gin.Context) {
 			})
 		return
 	}
-	id, err := r.services.Task.CreateTask(user.Id, task)
+	createdTask, err := r.services.Task.CreateTask(user.Id, task)
 	if err != nil {
 		ctx.IndentedJSON(
 			http.StatusBadRequest,
 			gin.H{
 				"status": models.StatusError,
-				"data":   id,
+				"data":   "",
 				"error":  err.Error(),
 			})
 		return
@@ -134,7 +134,7 @@ func (r *Router) CreateTask(ctx *gin.Context) {
 		http.StatusOK,
 		gin.H{
 			"status":       models.StatusSuccess,
-			"data":         id,
+			"data":         createdTask,
 			"errorMessage": "",
 		},
 	)
@@ -188,9 +188,12 @@ func (r *Router) DeleteTask(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
 		return
 	}
-	respString := fmt.Sprintf("data with id=%v was deleted", taskId)
 	ctx.IndentedJSON(
 		http.StatusOK,
-		gin.H{"data": respString},
+		gin.H{
+			"status":       models.StatusSuccess,
+			"data":         taskId,
+			"errorMessage": "",
+		},
 	)
 }

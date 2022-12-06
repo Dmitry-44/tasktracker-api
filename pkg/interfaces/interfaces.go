@@ -9,7 +9,7 @@ import (
 type ITask interface {
 	GetAll(user int) (models.TaskList, error)
 	GetTaskById(int, int) (models.Task, error)
-	CreateTask(int, models.TaskData) (int, error)
+	CreateTask(int, models.TaskData) (models.Task, error)
 	UpdateTask(int, int, models.TaskData) error
 	DeleteTask(int, int) error
 	GetTasksByGroupId(id int) (models.TaskList, error)
@@ -25,7 +25,7 @@ type IUser interface {
 type ITaskService interface {
 	GetAll(user int) (models.TaskList, error)
 	GetTaskById(int, int) (models.Task, error)
-	CreateTask(int, models.TaskData) (int, error)
+	CreateTask(int, models.TaskData) (models.Task, error)
 	UpdateTask(int, int, models.TaskData) error
 	DeleteTask(int, int) error
 }

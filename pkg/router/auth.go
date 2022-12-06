@@ -3,9 +3,15 @@ package router
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"tasktracker-api/pkg/models"
+	"time"
 
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	TokenLifeTime = int(24 * time.Hour)
 )
 
 func (r *Router) Login(ctx *gin.Context) {
@@ -32,6 +38,8 @@ func (r *Router) Login(ctx *gin.Context) {
 		return
 	}
 	// ctx.SetCookie("tasktrackerToken", token, 3600, "/", "/", true, false)
+	// fmt.Printf("context is %+v\n", ctx.Request.Header)
+	// ctx.SetCookie("Bearer", jwtToken, TokenLifeTime, "/", ctx.Request.Header.Origin, false, true)
 	ctx.IndentedJSON(
 		http.StatusCreated,
 		gin.H{
@@ -72,6 +80,66 @@ func (r *Router) Logup(ctx *gin.Context) {
 		gin.H{
 			"status":       models.StatusSuccess,
 			"token":        jwtToken,
+			"errorMessage": "",
+		},
+	)
+}
+
+func (r *Router) Auth(ctx *gin.Context) {
+	token := extractTokenFromHeader(ctx)
+	if len(token) == 0 {
+		ctx.IndentedJSON(
+			http.StatusUnauthorized,
+			gin.H{
+				"status":       models.StatusError,
+				"data":         "",
+				"errorMessage": "unauthorized",
+			},
+		)
+		return
+	}
+	claims, ok := GetClaimsFromToken(token)
+	if ok != nil {
+		ctx.IndentedJSON(
+			http.StatusUnauthorized,
+			gin.H{
+				"status":       models.StatusError,
+				"data":         "",
+				"errorMessage": "token error",
+			},
+		)
+		return
+	}
+	userIDString := claims["sub"].(string)
+	userId, err := strconv.Atoi(userIDString)
+	if err != nil {
+		ctx.IndentedJSON(
+			http.StatusUnauthorized,
+			gin.H{
+				"status":       models.StatusError,
+				"data":         "",
+				"errorMessage": err.Error(),
+			},
+		)
+		return
+	}
+	user, err := r.services.Auth.GetUserById(userId)
+	if err != nil {
+		ctx.IndentedJSON(
+			http.StatusUnauthorized,
+			gin.H{
+				"status":       models.StatusError,
+				"data":         "",
+				"errorMessage": err.Error(),
+			},
+		)
+		return
+	}
+	ctx.IndentedJSON(
+		http.StatusOK,
+		gin.H{
+			"status":       models.StatusSuccess,
+			"data":         user,
 			"errorMessage": "",
 		},
 	)

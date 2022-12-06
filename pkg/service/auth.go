@@ -20,7 +20,7 @@ type tokenClaims struct {
 }
 
 const (
-	tokenLifeTime = 24 * time.Hour
+	TokenLifeTime = 24 * time.Hour
 )
 
 var jwtSignedKey = []byte("secret")
@@ -61,7 +61,7 @@ func (s *AuthService) Logup(user models.UserData) (string, error) {
 func (s *AuthService) GenerateToken(id int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenLifeTime)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenLifeTime)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Subject:   strconv.Itoa(id),
 		},
