@@ -37,11 +37,9 @@ func (r *Router) Login(ctx *gin.Context) {
 			})
 		return
 	}
-	// ctx.SetCookie("tasktrackerToken", token, 3600, "/", "/", true, false)
-	// fmt.Printf("context is %+v\n", ctx.Request.Header)
-	// ctx.SetCookie("Bearer", jwtToken, TokenLifeTime, "/", ctx.Request.Header.Origin, false, true)
+	ctx.SetCookie("Bearer", jwtToken, TokenLifeTime, "/", ctx.Request.Header.Get("Origin"), false, true)
 	ctx.IndentedJSON(
-		http.StatusCreated,
+		http.StatusOK,
 		gin.H{
 			"status":       models.StatusSuccess,
 			"token":        jwtToken,
