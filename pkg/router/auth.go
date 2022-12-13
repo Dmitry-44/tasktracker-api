@@ -20,29 +20,32 @@ func (r *Router) Login(ctx *gin.Context) {
 		ctx.IndentedJSON(
 			http.StatusBadRequest,
 			gin.H{
-				"status": models.StatusError,
-				"data":   "",
-				"error":  fmt.Sprintf("Server error: %v", err.Error()),
+				"status":       models.StatusError,
+				"token":        "",
+				"user":         "",
+				"errorMessage": fmt.Sprintf("Server error: %v", err.Error()),
 			})
 		return
 	}
-	jwtToken, err := r.services.Auth.Login(user)
+	jwtToken, userFromDb, err := r.services.Auth.Login(user)
 	if err != nil {
 		ctx.IndentedJSON(
 			http.StatusBadRequest,
 			gin.H{
 				"status":       models.StatusError,
 				"token":        "",
+				"user":         userFromDb,
 				"errorMessage": err.Error(),
 			})
 		return
 	}
-	ctx.SetCookie("Bearer", jwtToken, TokenLifeTime, "/", ctx.Request.Header.Get("Origin"), false, true)
+	ctx.SetCookie("Bearer", jwtToken, TokenLifeTime, "/", ctx.Request.Header.Get("Origin"), false, false)
 	ctx.IndentedJSON(
 		http.StatusOK,
 		gin.H{
 			"status":       models.StatusSuccess,
 			"token":        jwtToken,
+			"user":         userFromDb,
 			"errorMessage": "",
 		},
 	)
@@ -90,7 +93,7 @@ func (r *Router) Auth(ctx *gin.Context) {
 			http.StatusUnauthorized,
 			gin.H{
 				"status":       models.StatusError,
-				"data":         "",
+				"user":         "",
 				"errorMessage": "unauthorized",
 			},
 		)
@@ -102,7 +105,7 @@ func (r *Router) Auth(ctx *gin.Context) {
 			http.StatusUnauthorized,
 			gin.H{
 				"status":       models.StatusError,
-				"data":         "",
+				"user":         "",
 				"errorMessage": "token error",
 			},
 		)
@@ -115,7 +118,7 @@ func (r *Router) Auth(ctx *gin.Context) {
 			http.StatusUnauthorized,
 			gin.H{
 				"status":       models.StatusError,
-				"data":         "",
+				"user":         "",
 				"errorMessage": err.Error(),
 			},
 		)
@@ -127,7 +130,7 @@ func (r *Router) Auth(ctx *gin.Context) {
 			http.StatusUnauthorized,
 			gin.H{
 				"status":       models.StatusError,
-				"data":         "",
+				"user":         "",
 				"errorMessage": err.Error(),
 			},
 		)
@@ -137,7 +140,7 @@ func (r *Router) Auth(ctx *gin.Context) {
 		http.StatusOK,
 		gin.H{
 			"status":       models.StatusSuccess,
-			"data":         user,
+			"user":         user,
 			"errorMessage": "",
 		},
 	)

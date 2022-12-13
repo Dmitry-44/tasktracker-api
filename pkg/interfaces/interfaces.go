@@ -31,7 +31,7 @@ type ITaskService interface {
 }
 type IAuthService interface {
 	// GetAll(user int) (models.TaskList, error)
-	Login(models.AuthData) (string, error)
+	Login(models.AuthData) (string, models.User, error)
 	Logup(models.UserData) (string, error)
 	GetUserById(int) (models.User, error)
 	CreateUser(models.UserData) (int, error)
