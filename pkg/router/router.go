@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -39,7 +40,9 @@ func (r *Router) InitRoutes() *gin.Engine {
 				tasks.POST("/", r.CreateTask)
 				tasks.PUT("/:id", r.UpdateTask)
 				tasks.DELETE("/:id", r.DeleteTask)
-
+				tasks.GET("/ws", func(c *gin.Context) {
+					r.WSHandler(c.Writer, c.Request)
+				})
 			}
 			groups := v1.Group("/groups")
 			{
@@ -60,12 +63,14 @@ type userCtx string
 const ctxKeyUser userCtx = "user"
 
 func AuthMiddleware(r *Router) gin.HandlerFunc {
+	fmt.Print("ssssss")
 	return func(ctx *gin.Context) {
 		token := extractTokenFromHeader(ctx)
 		if len(token) == 0 {
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+		fmt.Printf("token is %v", token)
 		claims, ok := GetClaimsFromToken(token)
 		if ok != nil {
 			ctx.AbortWithStatus(http.StatusUnauthorized)

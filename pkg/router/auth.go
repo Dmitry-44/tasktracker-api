@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 const (
-	TokenLifeTime = int(24 * time.Hour)
+	TokenLifeTime = int((time.Duration(24) * time.Hour) / 1000000000) //sec
 )
 
 func (r *Router) Login(ctx *gin.Context) {
@@ -39,7 +40,7 @@ func (r *Router) Login(ctx *gin.Context) {
 			})
 		return
 	}
-	ctx.SetCookie("Bearer", jwtToken, TokenLifeTime, "/", ctx.Request.Header.Get("Origin"), false, false)
+	ctx.SetCookie(viper.GetString("BearerCookieName"), jwtToken, TokenLifeTime, "/", ctx.Request.Header.Get("Origin"), true, false)
 	ctx.IndentedJSON(
 		http.StatusOK,
 		gin.H{
@@ -53,34 +54,36 @@ func (r *Router) Login(ctx *gin.Context) {
 
 func (r *Router) Logup(ctx *gin.Context) {
 	user := models.UserData{}
-	fmt.Printf("user in router %v", user)
 	if err := ctx.BindJSON(&user); err != nil {
 		ctx.IndentedJSON(
 			http.StatusBadRequest,
 			gin.H{
-				"status": models.StatusError,
-				"data":   "",
-				"error":  fmt.Sprintf("Server error: %v", err.Error()),
+				"status":       models.StatusError,
+				"token":        "",
+				"user":         "",
+				"errorMessage": fmt.Sprintf("Server error: %v", err.Error()),
 			})
 		return
 	}
-	jwtToken, err := r.services.Auth.Logup(user)
+	jwtToken, userFromDB, err := r.services.Auth.Logup(user)
 	if err != nil {
 		ctx.IndentedJSON(
 			http.StatusBadRequest,
 			gin.H{
 				"status":       models.StatusError,
 				"token":        "",
+				"user":         "",
 				"errorMessage": err.Error(),
 			})
 		return
 	}
-	// ctx.SetCookie("tasktrackerToken", token, 3600, "/", "/", true, false)
+	ctx.SetCookie("Bearer", jwtToken, TokenLifeTime, "/", ctx.Request.Header.Get("Origin"), false, false)
 	ctx.IndentedJSON(
 		http.StatusCreated,
 		gin.H{
 			"status":       models.StatusSuccess,
 			"token":        jwtToken,
+			"user":         userFromDB,
 			"errorMessage": "",
 		},
 	)
