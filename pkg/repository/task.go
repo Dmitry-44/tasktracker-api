@@ -93,7 +93,8 @@ func (r *TasksRepo) CreateTask(user int, task models.TaskData) (models.Task, err
 	return createdTask, nil
 }
 
-func (r *TasksRepo) UpdateTask(user int, id int, task models.TaskData) error {
+func (r *TasksRepo) UpdateTask(user int, id int, task models.TaskData) (models.Task, error) {
+	var updatedTask models.Task
 	set := make([]string, 0)
 	args := make([]interface{}, 0)
 	argsId := 1
@@ -118,14 +119,15 @@ func (r *TasksRepo) UpdateTask(user int, id int, task models.TaskData) error {
 		argsId++
 	}
 	setQuery := strings.Join(set, ", ")
-	query := fmt.Sprintf("UPDATE tasks SET %s WHERE id=($%v) AND created_by=($%v)", setQuery, argsId, argsId+1)
+	query := fmt.Sprintf("UPDATE tasks SET %s WHERE id=($%v) AND created_by=($%v) RETURNING *", setQuery, argsId, argsId+1)
 	args = append(args, id)
 	args = append(args, user)
-	_, err := r.db.Exec(query, args...)
+	// _, err := r.db.Exec(query, args...)
+	err := r.db.QueryRow(query, args...).Scan(&updatedTask.Id, &updatedTask.Title, &updatedTask.Status, &updatedTask.CreatedBy, &updatedTask.Priority, &updatedTask.Description, &updatedTask.GroupId)
 	if err != nil {
-		return err
+		return updatedTask, err
 	}
-	return nil
+	return updatedTask, nil
 }
 
 func (r *TasksRepo) DeleteTask(user int, id int) error {

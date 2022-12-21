@@ -46,17 +46,23 @@ func (s *AuthService) Login(user models.AuthData) (string, models.User, error) {
 	return jwtToken, userFromDb, nil
 }
 
-func (s *AuthService) Logup(user models.UserData) (string, error) {
+func (s *AuthService) Logup(user models.UserData) (string, models.User, error) {
 	var jwtToken string
 	userId, err := s.CreateUser(user)
 	if err != nil {
-		return jwtToken, err
+		return jwtToken, models.User{}, err
+	}
+	userFromDB := models.User{
+		Id:       userId,
+		Name:     *user.Name,
+		Username: *user.Username,
+		Email:    *user.Email,
 	}
 	jwtToken, err = s.GenerateToken(userId)
 	if err != nil {
-		return jwtToken, err
+		return jwtToken, userFromDB, err
 	}
-	return jwtToken, nil
+	return jwtToken, userFromDB, nil
 }
 
 func (s *AuthService) GenerateToken(id int) (string, error) {
