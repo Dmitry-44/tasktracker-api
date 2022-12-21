@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"tasktracker-api/pkg/hub"
 	"tasktracker-api/pkg/models"
 
 	"github.com/gin-gonic/gin"
@@ -130,6 +131,16 @@ func (r *Router) CreateTask(ctx *gin.Context) {
 			})
 		return
 	}
+
+	wsMessage := hub.WSMessage{Entity: "task", Action: "create", Data: createdTask}
+	ok = r.hub.SendMessage(user.Id, wsMessage)
+	if !ok {
+		fmt.Print("WS Send Message error")
+	}
+	ok = r.hub.SendMessage(25, wsMessage)
+	if !ok {
+		fmt.Print("WS Send Message error")
+	}
 	ctx.IndentedJSON(
 		http.StatusOK,
 		gin.H{
@@ -157,16 +168,25 @@ func (r *Router) UpdateTask(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusOK, gin.H{"data": "Server error"})
 		return
 	}
-	err = r.services.Task.UpdateTask(user.Id, id, task)
+	updatedTask, err := r.services.Task.UpdateTask(user.Id, id, task)
 	if err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
 		return
+	}
+	wsMessage := hub.WSMessage{Entity: "task", Action: "update", Data: updatedTask}
+	ok = r.hub.SendMessage(user.Id, wsMessage)
+	if !ok {
+		fmt.Print("WS Send Message error")
+	}
+	ok = r.hub.SendMessage(25, wsMessage)
+	if !ok {
+		fmt.Print("WS Send Message error")
 	}
 	ctx.IndentedJSON(
 		http.StatusOK,
 		models.ServerResponse{
 			Status: "ok",
-			Data:   idString,
+			Data:   fmt.Sprintf("%v", updatedTask),
 		},
 	)
 }

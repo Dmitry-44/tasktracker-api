@@ -4,14 +4,20 @@ import (
 	"fmt"
 	"log"
 	database "tasktracker-api/db"
+	"tasktracker-api/pkg/hub"
 	"tasktracker-api/pkg/repository"
 	router "tasktracker-api/pkg/router"
 	"tasktracker-api/pkg/service"
 
+	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 
 	"github.com/spf13/viper"
 )
+
+type userCtx string
+
+const ctxKeyUser userCtx = "user"
 
 func main() {
 	err := getConfig()
@@ -39,26 +45,13 @@ func main() {
 
 	repository := repository.NewRepository(db)
 	services := service.NewService(repository)
-	router := router.NewRouter(services)
+	hub := hub.NewHub()
+	go hub.Run()
+	router := router.NewRouter(services, hub)
 	app := router.InitRoutes()
-	// configCORS := cors.DefaultConfig()
-	// configCORS.AllowCredentials = true
-	// configCORS.AllowAllOrigins = true
-
-	// configCORS.AllowOrigins = []string{"http://localhost:3001/"}
-
-	// configCORS.AllowMethods = []string{"PUT", "PATCH", "GET", "POST"}
-	// app.Use(cors.New(configCORS))
-
-	// app.Use(cors.New(cors.Config{
-	// 	AllowOrigins:     []string{"http://localhost:3001/"},
-	// 	AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodHead, http.MethodDelete, http.MethodConnect},
-	// 	AllowHeaders:     []string{"Accept", "Content-Type", "Origin", "Content-Length", "Accept-Encoding", "Authorization", "Cache-Control", "Access-Control-Allow-Origin"},
-	// 	ExposeHeaders:    []string{"Content-Length", "Content-Type"},
-	// 	AllowCredentials: true,
-	// 	AllowWebSockets: true,
-	// }))
-
+	app.GET("/ws", func(c *gin.Context) {
+		router.WSHandler(hub, c.Writer, c.Request)
+	})
 	app.Run(viper.GetString("port"))
 }
 

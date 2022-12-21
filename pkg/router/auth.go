@@ -90,7 +90,7 @@ func (r *Router) Logup(ctx *gin.Context) {
 }
 
 func (r *Router) Auth(ctx *gin.Context) {
-	token := extractTokenFromHeader(ctx)
+	token := r.extractTokenFromHeader(ctx)
 	if len(token) == 0 {
 		ctx.IndentedJSON(
 			http.StatusUnauthorized,
@@ -102,7 +102,7 @@ func (r *Router) Auth(ctx *gin.Context) {
 		)
 		return
 	}
-	claims, ok := GetClaimsFromToken(token)
+	claims, ok := r.GetClaimsFromToken(token)
 	if ok != nil {
 		ctx.IndentedJSON(
 			http.StatusUnauthorized,
