@@ -20,7 +20,7 @@ type tokenClaims struct {
 }
 
 const (
-	tokenLifeTime = 24 * time.Hour
+	TokenLifeTime = 24 * time.Hour
 )
 
 var jwtSignedKey = []byte("secret")
@@ -32,17 +32,18 @@ func NewAuthService(usersRepo repository.Users, tasksRepo repository.Tasks) *Aut
 	}
 }
 
-func (s *AuthService) Login(user models.AuthData) (string, error) {
+func (s *AuthService) Login(user models.AuthData) (string, models.User, error) {
 	var jwtToken string
-	userId, err := s.CheckUser(*user.Username, *user.Password)
+	userFromDb, err := s.CheckUser(*user.Username, *user.Password)
 	if err != nil {
-		return jwtToken, err
+		return jwtToken, userFromDb, err
 	}
-	jwtToken, err = s.GenerateToken(userId)
+	jwtToken, err = s.GenerateToken(userFromDb.Id)
 	if err != nil {
-		return jwtToken, err
+		return jwtToken, userFromDb, err
 	}
-	return jwtToken, nil
+
+	return jwtToken, userFromDb, nil
 }
 
 func (s *AuthService) Logup(user models.UserData) (string, error) {
@@ -61,7 +62,7 @@ func (s *AuthService) Logup(user models.UserData) (string, error) {
 func (s *AuthService) GenerateToken(id int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenLifeTime)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenLifeTime)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Subject:   strconv.Itoa(id),
 		},
@@ -77,16 +78,16 @@ func (s *AuthService) GetUserById(userId int) (models.User, error) {
 	return s.usersRepo.GetUserById(userId)
 }
 
-func (s *AuthService) CheckUser(username string, password string) (int, error) {
+func (s *AuthService) CheckUser(username string, password string) (models.User, error) {
 	userFromDB, err := s.usersRepo.GetUserByLogin(username)
 	if err != nil {
-		return 0, err
+		return userFromDB, err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(userFromDB.Password), []byte(password))
 	if err != nil {
-		return 0, err
+		return userFromDB, err
 	}
-	return userFromDB.Id, nil
+	return userFromDB, nil
 }
 
 func (s *AuthService) CreateUser(user models.UserData) (int, error) {

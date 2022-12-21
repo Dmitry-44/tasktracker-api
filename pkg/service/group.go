@@ -1,40 +1,99 @@
 package service
 
 import (
+	"errors"
+	"fmt"
+	"strconv"
 	"tasktracker-api/pkg/models"
 	"tasktracker-api/pkg/repository"
+
+	"github.com/gin-gonic/gin"
 )
 
 type GroupsService struct {
 	groupsRepo repository.Groups
+	tasksRepo  repository.Tasks
 }
 
-func NewGroupService(groupsRepo repository.Groups) *GroupsService {
-	return &GroupsService{groupsRepo: groupsRepo}
+func NewGroupService(groupsRepo repository.Groups, tasksRepo repository.Tasks) *GroupsService {
+	return &GroupsService{
+		groupsRepo: groupsRepo,
+		tasksRepo:  tasksRepo,
+	}
 }
 
-//	func (s *TasksService) GetAll(user int) (models.TaskList, error) {
-//		return s.tasksRepo.GetAll(user)
-//	}
-//
-//	func (s *TasksService) GetTaskById(user int, taskId int) (models.Task, error) {
-//		return s.tasksRepo.GetTaskById(user, taskId)
-//	}
+func (s *GroupsService) GetAll(user int) (models.GroupList, error) {
+	return s.groupsRepo.GetAll(user)
+}
+
+func (s *GroupsService) GetGroupById(ctx *gin.Context, user int) (models.Group, error) {
+	group := models.Group{}
+	groupId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		return group, fmt.Errorf("server error: %v", err.Error())
+	}
+	ok := s.isUserBelongsToGroup(user, groupId)
+	if !ok {
+		return group, errors.New("server error")
+	}
+	group, err = s.groupsRepo.GetGroupById(groupId)
+	if err != nil {
+		return group, fmt.Errorf("server error: %v", err.Error())
+	}
+	return group, nil
+}
+
 func (s *GroupsService) CreateGroup(user int, group models.GroupData) (int, error) {
 	createdGroupId, err := s.groupsRepo.CreateGroup(user, group)
-	if err != nil {
-		return 0, err
-	}
-	err = s.groupsRepo.SetUserGroup(user, createdGroupId)
 	if err != nil {
 		return 0, err
 	}
 	return createdGroupId, nil
 }
 
-// func (s *TasksService) UpdateTask(user int, taskId int, task models.TaskData) error {
-// 	return s.tasksRepo.UpdateTask(user, taskId, task)
-// }
-// func (s *TasksService) DeleteTask(user int, taskId int) error {
-// 	return s.tasksRepo.DeleteTask(user, taskId)
-// }
+func (s *GroupsService) DeleteGroup(ctx *gin.Context, user int) error {
+	groupId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		return fmt.Errorf("server error: %v", err.Error())
+	}
+	ok := s.isUserBelongsToGroup(user, groupId)
+	if !ok {
+		return errors.New("server error")
+	}
+	err = s.groupsRepo.DeleteGroupById(groupId)
+	if err != nil {
+		return fmt.Errorf("server error: %v", err.Error())
+	}
+	return nil
+}
+func (s *GroupsService) GetTasksByGroupId(ctx *gin.Context, user int) (models.TaskList, error) {
+	tasks := models.TaskList{}
+	groupId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		return tasks, fmt.Errorf("server error: %v", err.Error())
+	}
+	ok := s.isUserBelongsToGroup(user, groupId)
+	if !ok {
+		return tasks, errors.New("server error")
+	}
+	tasks, err = s.tasksRepo.GetTasksByGroupId(groupId)
+	if err != nil {
+		return tasks, fmt.Errorf("server error: %v", err.Error())
+	}
+	return tasks, nil
+}
+
+func (s *GroupsService) isUserBelongsToGroup(user int, group int) bool {
+	res := false
+	userGroups, err := s.groupsRepo.GetAll(user)
+	if err != nil {
+		return res
+	}
+	for i := range userGroups.Groups {
+		if userGroups.Groups[i].Id == group {
+			res = true
+			break
+		}
+	}
+	return res
+}

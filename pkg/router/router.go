@@ -23,8 +23,10 @@ func NewRouter(services *service.Service) *Router {
 func (r *Router) InitRoutes() *gin.Engine {
 
 	router := gin.New()
+	router.Use(CORSMiddleware())
 	router.POST("/login", r.Login)
 	router.POST("/logup", r.Logup)
+	router.POST("/auth", r.Auth)
 	api := router.Group("/api")
 	api.Use(AuthMiddleware(r))
 	{
@@ -41,11 +43,12 @@ func (r *Router) InitRoutes() *gin.Engine {
 			}
 			groups := v1.Group("/groups")
 			{
-				// groups.GET("/", r.GetAllGroupes)
-				// groups.GET("/:id", r.GetGroupById)
+				groups.GET("/", r.GetAllGroupes)
+				groups.GET("/:id", r.GetGroupById)
+				groups.GET("/:id/tasks", r.GetTasksByGroupId)
 				groups.POST("/", r.CreateGroup)
 				// groups.PUT("/:id", r.UpdateGroup)
-				// groups.DELETE("/:id", r.DeleteGroup)
+				groups.DELETE("/:id", r.DeleteGroup)
 			}
 		}
 	}
@@ -105,4 +108,21 @@ func GetClaimsFromToken(tokenString string) (jwt.MapClaims, error) {
 		return claims, nil
 	}
 	return nil, err
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		c.Header("Access-Control-Allow-Origin", "http://localhost:3001")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, Access-Control-Allow-Origin")
+		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH,OPTIONS,GET,PUT,DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }

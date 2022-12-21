@@ -19,7 +19,7 @@ func (s *TasksService) GetAll(user int) (models.TaskList, error) {
 func (s *TasksService) GetTaskById(user int, taskId int) (models.Task, error) {
 	return s.tasksRepo.GetTaskById(user, taskId)
 }
-func (s *TasksService) CreateTask(user int, task models.TaskData) (int, error) {
+func (s *TasksService) CreateTask(user int, task models.TaskData) (models.Task, error) {
 	return s.tasksRepo.CreateTask(user, task)
 }
 func (s *TasksService) UpdateTask(user int, taskId int, task models.TaskData) error {

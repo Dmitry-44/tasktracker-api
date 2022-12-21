@@ -7,6 +7,10 @@ type Group struct {
 	CreatedBy   int    `json:"createdBy" db:"created_by"`
 }
 
+type GroupList struct {
+	Groups []Group `json:"groups"`
+}
+
 type GroupData struct {
 	Name        *string `json:"name" db:"name"`
 	Description *string `json:"description" db:"description"`

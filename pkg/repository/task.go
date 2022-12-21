@@ -19,7 +19,7 @@ func NewTasksRepo(db *sql.DB) *TasksRepo {
 func (r *TasksRepo) GetAll(user int) (models.TaskList, error) {
 	taskList := models.TaskList{}
 	taskList.Tasks = make([]models.Task, 0)
-	rows, err := r.db.Query("SELECT * FROM tasks WHERE created_by=($1)", user)
+	rows, err := r.db.Query("SELECT * FROM tasks WHERE created_by=($1) and group_id=0", user)
 	if err != nil {
 		return taskList, err
 	}
@@ -44,8 +44,8 @@ func (r *TasksRepo) GetTaskById(user int, taskId int) (models.Task, error) {
 	return task, nil
 }
 
-func (r *TasksRepo) CreateTask(user int, task models.TaskData) (int, error) {
-	var createdTaskId int
+func (r *TasksRepo) CreateTask(user int, task models.TaskData) (models.Task, error) {
+	var createdTask models.Task
 	set := make([]string, 0)
 	numbersSet := make([]string, 0)
 	values := make([]interface{}, 0)
@@ -85,12 +85,12 @@ func (r *TasksRepo) CreateTask(user int, task models.TaskData) (int, error) {
 	values = append(values, user)
 	setString := strings.Join(set, ", ")
 	numbersSetString := strings.Join(numbersSet, ", ")
-	query := fmt.Sprintf("INSERT into tasks (%s) VALUES (%s) RETURNING id", setString, numbersSetString)
-	err := r.db.QueryRow(query, values...).Scan(&createdTaskId)
+	query := fmt.Sprintf("INSERT into tasks (%s) VALUES (%s) RETURNING *", setString, numbersSetString)
+	err := r.db.QueryRow(query, values...).Scan(&createdTask.Id, &createdTask.Title, &createdTask.Status, &createdTask.CreatedBy, &createdTask.Priority, &createdTask.Description, &createdTask.GroupId)
 	if err != nil {
-		return createdTaskId, err
+		return createdTask, err
 	}
-	return createdTaskId, nil
+	return createdTask, nil
 }
 
 func (r *TasksRepo) UpdateTask(user int, id int, task models.TaskData) error {
@@ -134,4 +134,22 @@ func (r *TasksRepo) DeleteTask(user int, id int) error {
 		return err.Err()
 	}
 	return nil
+}
+func (r *TasksRepo) GetTasksByGroupId(id int) (models.TaskList, error) {
+	taskList := models.TaskList{}
+	taskList.Tasks = make([]models.Task, 0)
+	rows, err := r.db.Query("SELECT * FROM tasks WHERE group_id=($1)", id)
+	if err != nil {
+		return taskList, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var task models.Task
+		err := rows.Scan(&task.Id, &task.Title, &task.Status, &task.CreatedBy, &task.Priority, &task.Description, &task.GroupId)
+		if err != nil {
+			log.Fatalf("scanning database error: %v", err)
+		}
+		taskList.Tasks = append(taskList.Tasks, task)
+	}
+	return taskList, nil
 }
