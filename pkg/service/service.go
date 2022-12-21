@@ -8,6 +8,8 @@ import (
 type Task interface{ interfaces.ITaskService }
 type Auth interface{ interfaces.IAuthService }
 type Group interface{ interfaces.IGroupService }
+
+// type Hub interface{ interfaces.IHubService }
 type Service struct {
 	Task
 	Auth
