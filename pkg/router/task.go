@@ -131,13 +131,9 @@ func (r *Router) CreateTask(ctx *gin.Context) {
 			})
 		return
 	}
-
+	//send by ws channel
 	wsMessage := hub.WSMessage{Entity: "task", Action: "create", Data: createdTask}
 	ok = r.hub.SendMessage(user.Id, wsMessage)
-	if !ok {
-		fmt.Print("WS Send Message error")
-	}
-	ok = r.hub.SendMessage(25, wsMessage)
 	if !ok {
 		fmt.Print("WS Send Message error")
 	}
@@ -173,12 +169,9 @@ func (r *Router) UpdateTask(ctx *gin.Context) {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"data": err.Error()})
 		return
 	}
+	//send by ws channel
 	wsMessage := hub.WSMessage{Entity: "task", Action: "update", Data: updatedTask}
 	ok = r.hub.SendMessage(user.Id, wsMessage)
-	if !ok {
-		fmt.Print("WS Send Message error")
-	}
-	ok = r.hub.SendMessage(25, wsMessage)
 	if !ok {
 		fmt.Print("WS Send Message error")
 	}
