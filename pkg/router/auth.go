@@ -35,8 +35,8 @@ func (r *Router) Login(ctx *gin.Context) {
 			gin.H{
 				"status":       models.StatusError,
 				"token":        "",
-				"user":         userFromDb,
-				"errorMessage": err.Error(),
+				"user":         "",
+				"errorMessage": "Неверный логин или пароль",
 			})
 		return
 	}
@@ -77,7 +77,7 @@ func (r *Router) Logup(ctx *gin.Context) {
 			})
 		return
 	}
-	ctx.SetCookie("Bearer", jwtToken, TokenLifeTime, "/", ctx.Request.Header.Get("Origin"), false, false)
+	ctx.SetCookie(viper.GetString("BearerCookieName"), jwtToken, TokenLifeTime, "/", ctx.Request.Header.Get("Origin"), true, false)
 	ctx.IndentedJSON(
 		http.StatusCreated,
 		gin.H{

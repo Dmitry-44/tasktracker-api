@@ -22,7 +22,7 @@ const ctxKeyUser userCtx = "user"
 
 func NewService(repo *repository.Repository) *Service {
 	return &Service{
-		Task:  NewTasksService(repo.Tasks),
+		Task:  NewTasksService(repo.Tasks, repo.Groups),
 		Auth:  NewAuthService(repo.Users, repo.Tasks),
 		Group: NewGroupService(repo.Groups, repo.Tasks),
 	}

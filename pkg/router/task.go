@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"tasktracker-api/pkg/hub"
@@ -11,6 +12,11 @@ import (
 )
 
 func (r *Router) GetAllTasks(ctx *gin.Context) {
+	var params models.TaskGetParams
+	err := ctx.ShouldBindQuery(&params)
+	if err != nil {
+		log.Printf("GetAllTask error: %v", err)
+	}
 	user, ok := ctx.Request.Context().Value(ctxKeyUser).(models.User)
 	if !ok {
 		ctx.IndentedJSON(
@@ -22,7 +28,7 @@ func (r *Router) GetAllTasks(ctx *gin.Context) {
 			})
 		return
 	}
-	data, err := r.services.Task.GetAll(user.Id)
+	data, err := r.services.Task.GetAll(user.Id, params)
 	if err != nil {
 		ctx.IndentedJSON(
 			http.StatusBadGateway,
