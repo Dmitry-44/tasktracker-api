@@ -136,3 +136,17 @@ func (r *GroupsRepo) DeleteGroupById(id int) error {
 	}
 	return nil
 }
+
+func (r *GroupsRepo) IsUserInGroup(userId int, groupId int) (bool, error) {
+	var userFromDb int
+	var groupFromDb int
+	res := false
+	err := r.db.QueryRow("SELECT * FROM user_group WHERE user_id=($1) and group_id=($2)", userId, groupId).Scan(&userFromDb, &groupFromDb)
+	if err != nil {
+		return res, err
+	}
+	if userFromDb == userId {
+		return true, nil
+	}
+	return res, nil
+}

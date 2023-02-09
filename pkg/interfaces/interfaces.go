@@ -23,7 +23,7 @@ type IUser interface {
 	// DeleteTask(int, int) error
 }
 type ITaskService interface {
-	GetAll(user int) (models.TaskList, error)
+	GetAll(userId int, params models.TaskGetParams) (models.TaskList, error)
 	GetTaskById(int, int) (models.Task, error)
 	CreateTask(int, models.TaskData) (models.Task, error)
 	UpdateTask(int, int, models.TaskData) (models.Task, error)
@@ -52,4 +52,5 @@ type IGroup interface {
 	CreateGroup(int, models.GroupData) (int, error)
 	// SetUserGroup(int, int) error
 	DeleteGroupById(int) error
+	IsUserInGroup(int, int) (bool, error)
 }

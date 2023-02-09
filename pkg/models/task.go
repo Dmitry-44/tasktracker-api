@@ -21,3 +21,7 @@ type TaskData struct {
 	Priority    *int    `json:"priority" db:"priority"`
 	GroupId     *int    `json:"groupId" db:"group_id"`
 }
+
+type TaskGetParams struct {
+	GroupId *int `json:"GroupId,omitempty" form:"group"`
+}
